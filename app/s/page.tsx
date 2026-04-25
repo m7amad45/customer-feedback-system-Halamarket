@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect ,Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -10,8 +10,15 @@ import { DEPARTMENTS, RATING_EMOJIS, type Language, type Department } from '@/li
 import { cn } from '@/lib/utils'
 
 type Step = 'welcome' | 'questions' | 'comment' | 'success'
-
 export default function SurveyPage() {
+  return (
+    <Suspense fallback={<div>جاري التحميل...</div>}>
+      <SurveyContent />
+    </Suspense>
+  )
+}
+
+function SurveyContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const searchParams = useSearchParams()
   const deptParam = searchParams.get('dept')
@@ -351,6 +358,7 @@ export default function SurveyPage() {
     "flex-[2] rounded-2xl py-3 font-bold text-sm flex items-center justify-center gap-2 transition-all",
     isSubmitting ? "bg-muted cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"
   )}
+  
 >
   {isSubmitting ? (
     <>جاري الإرسال...</>
