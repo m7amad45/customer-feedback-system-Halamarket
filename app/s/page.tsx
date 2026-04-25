@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 type Step = 'welcome' | 'questions' | 'comment' | 'success'
 
 export default function SurveyPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const searchParams = useSearchParams()
   const deptParam = searchParams.get('dept')
 
@@ -64,11 +65,41 @@ export default function SurveyPage() {
     }
   }
 
-  function handleSubmit() {
-    // In a real app, POST to API here
-    setStep('success')
-  }
+  async function handleSubmit() {
+    if (isSubmitting) return; 
+    setIsSubmitting(true); 
 
+    try {
+      // حساب متوسط التقييم من الإجابات
+      const scores = Object.values(answers);
+      const averageRating = scores.length 
+        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) 
+        : 0;
+
+      // الإرسال الحقيقي للبيانات
+      const response = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          departmentId: department?.id,
+          departmentName: lang === 'ar' ? department?.nameAr : department?.nameEn,
+          overallRating: averageRating,
+          comment: comment,
+          answers: answers,
+        }),
+      });
+
+      if (response.ok) {
+        setStep('success');
+      } else {
+        throw new Error('Failed to submit');
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      alert(isRtl ? 'عذراً، حدث خطأ أثناء الإرسال. حاول مرة أخرى.' : 'Error submitting feedback. Please try again.');
+      setIsSubmitting(false); // نعيد تفعيل الزر فقط في حالة الخطأ
+    }
+  }
   // Get current rating emoji
   const currentRating = department ? answers[department.questions[currentQuestion]?.id] : 0
   const ratingEmoji = RATING_EMOJIS.find((r) => r.score === currentRating)
@@ -314,12 +345,22 @@ export default function SurveyPage() {
                   {isRtl ? 'رجوع' : 'Back'}
                 </button>
                 <button
-                  onClick={handleSubmit}
-                  className="flex-[2] bg-primary text-primary-foreground rounded-2xl py-3 font-bold text-sm hover:bg-primary/90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                >
-                  <CheckCircle2 className="w-4 h-4" />
-                  {isRtl ? 'إرسال التقييم' : 'Submit Feedback'}
-                </button>
+  onClick={handleSubmit}
+  disabled={isSubmitting} // الزر يتعطل إذا كان جاري الإرسال
+  className={cn(
+    "flex-[2] rounded-2xl py-3 font-bold text-sm flex items-center justify-center gap-2 transition-all",
+    isSubmitting ? "bg-muted cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90"
+  )}
+>
+  {isSubmitting ? (
+    <>جاري الإرسال...</>
+  ) : (
+    <>
+      <CheckCircle2 className="w-4 h-4" />
+      {isRtl ? 'إرسال التقييم' : 'Submit Feedback'}
+    </>
+  )}
+</button>
               </div>
             </motion.div>
           )}

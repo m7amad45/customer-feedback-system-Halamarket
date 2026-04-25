@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
@@ -9,8 +9,7 @@ import {
   Star, TrendingUp, BarChart3, Download, Eye, ChevronDown,
 } from 'lucide-react'
 import {
-  MOCK_FEEDBACK, DEPARTMENTS, generateChartData, getDepartmentStats,
-  type FeedbackEntry,
+  DEPARTMENTS,
 } from '@/lib/feedback-data'
 import { cn } from '@/lib/utils'
 
@@ -72,26 +71,75 @@ function StatCard({
 
 export default function DashboardPage() {
   const [selectedDept, setSelectedDept] = useState<string>('all')
-  const chartData = useMemo(() => generateChartData(), [])
-  const deptStats = useMemo(() => getDepartmentStats(), [])
+  const [feedbacks, setFeedbacks] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const filtered: FeedbackEntry[] = selectedDept === 'all'
-    ? MOCK_FEEDBACK
-    : MOCK_FEEDBACK.filter((f) => f.departmentId === selectedDept)
+  // 1. جلب البيانات من الداتابيز
+  useEffect(() => {
+    async function fetchFeedbacks() {
+      try {
+        const res = await fetch('/api/feedback')
+        const data = await res.json()
+        setFeedbacks(data)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchFeedbacks()
+  }, [])
 
+  // 2. تصفية البيانات حسب القسم
+  const filtered = useMemo(() => {
+    return selectedDept === 'all'
+      ? feedbacks
+      : feedbacks.filter((f) => f.departmentId === selectedDept)
+  }, [selectedDept, feedbacks])
+
+  // 3. حساب الإحصائيات
   const totalFeedbacks = filtered.length
   const avgRating = filtered.length
-    ? (filtered.reduce((s, f) => s + f.averageRating, 0) / filtered.length).toFixed(1)
-    : '—'
+    ? (filtered.reduce((s, f) => s + f.overallRating, 0) / filtered.length).toFixed(1)
+    : '0.0'
+
+  const deptStats = useMemo(() => {
+    const stats: any = {}
+    feedbacks.forEach(f => {
+      if (!stats[f.departmentId]) {
+        stats[f.departmentId] = { id: f.departmentId, nameAr: f.departmentName, sum: 0, count: 0 }
+      }
+      stats[f.departmentId].sum += f.overallRating
+      stats[f.departmentId].count += 1
+    })
+    return Object.values(stats)
+      .map((s: any) => ({
+        department: DEPARTMENTS.find(d => d.id === s.id) || { nameAr: s.nameAr, emoji: '📍', id: s.id },
+        avg: (s.sum / s.count).toFixed(1),
+        count: s.count
+      }))
+      .sort((a, b) => Number(b.avg) - Number(a.avg))
+  }, [feedbacks])
+
   const topDept = deptStats[0]
   const activeDepts = deptStats.length
+
+  // بيانات الرسم البياني (بشكل مبسط للأيام الأخيرة)
+  const chartData = useMemo(() => {
+    const days: any = {}
+    feedbacks.slice(0, 30).forEach(f => {
+      const date = new Date(f.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+      days[date] = (days[date] || 0) + f.overallRating
+    })
+    return Object.keys(days).map(key => ({ date: key, rating: (days[key] / feedbacks.length * 5).toFixed(1) }))
+  }, [feedbacks])
 
   function exportCSV() {
     const headers = ['القسم', 'التقييم', 'التعليق', 'التاريخ']
     const rows = filtered.map((f) => [
-      f.departmentNameAr,
-      f.averageRating,
-      `"${f.comment}"`,
+      f.departmentName,
+      f.overallRating,
+      `"${f.comment || ''}"`,
       new Date(f.createdAt).toLocaleDateString('ar-SA'),
     ])
     const csv = [headers, ...rows].map((r) => r.join(',')).join('\n')
@@ -104,6 +152,8 @@ export default function DashboardPage() {
     URL.revokeObjectURL(url)
   }
 
+  if (isLoading) return <div className="p-10 text-center font-bold">جاري تحميل تقييمات أسواق هلا...</div>
+
   return (
     <div className="p-4 md:p-6 space-y-6" dir="rtl">
       {/* Page header */}
@@ -111,11 +161,10 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-xl font-black text-foreground">لوحة التحكم</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            تقييمات رضا العملاء · جميع الأقسام
+            تقييمات رضا العملاء الحقيقية · {selectedDept === 'all' ? 'جميع الأقسام' : 'قسم محدد'}
           </p>
         </div>
 
-        {/* Department filter */}
         <div className="relative">
           <select
             value={selectedDept}
@@ -143,173 +192,86 @@ export default function DashboardPage() {
         <StatCard
           title="الأقسام النشطة"
           value={activeDepts}
-          sub="قسم به تقييمات"
+          sub="أقسام استلمت تقييمات"
           icon={BarChart3}
         />
         <StatCard
           title="متوسط التقييم"
           value={`${avgRating}/5`}
-          sub="عبر جميع الأقسام"
+          sub="إجمالي رضا العملاء"
           icon={Star}
         />
         <StatCard
           title="إجمالي التقييمات"
           value={totalFeedbacks}
-          sub="هذا الشهر"
+          sub="تقييم حقيقي"
           icon={BarChart3}
         />
       </div>
 
-      {/* Chart + Department Ranking */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Line chart */}
         <div className="lg:col-span-2 bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="font-bold text-foreground text-sm">معدل التقييم (آخر 30 يوم)</p>
-              <p className="text-xs text-muted-foreground mt-0.5">عدد التقييمات اليومية بياناً</p>
-            </div>
-          </div>
+          <p className="font-bold text-foreground text-sm mb-4">معدل التقييم (بيانات حية)</p>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                tickLine={false}
-                axisLine={false}
-                interval={4}
-              />
-              <YAxis
-                domain={[0, 5]}
-                tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: 'var(--card)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  fontSize: '12px',
-                  color: 'var(--foreground)',
-                }}
-                formatter={(val: number) => [`${val}/5`, 'متوسط التقييم']}
-              />
-              <Line
-                type="monotone"
-                dataKey="rating"
-                stroke="var(--hala-orange)"
-                strokeWidth={2.5}
-                dot={false}
-                activeDot={{ r: 5, fill: 'var(--hala-orange)' }}
-              />
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10 }} axisLine={false} />
+              <YAxis domain={[0, 5]} tick={{ fontSize: 10 }} axisLine={false} />
+              <Tooltip />
+              <Line type="monotone" dataKey="rating" stroke="#f59e0b" strokeWidth={3} dot={true} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
-        {/* Department ranking */}
         <div className="bg-card border border-border rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-4 h-4 text-primary" />
             <p className="font-bold text-foreground text-sm">ترتيب الأقسام</p>
           </div>
-          <p className="text-xs text-muted-foreground mb-3">حسب متوسط رضا العملاء</p>
           <div className="space-y-3">
-            {deptStats.slice(0, 5).map((s, i) => (
-              <div key={s.department.id} className={cn('rounded-xl p-3', i === 0 ? 'bg-accent/10 border border-accent/20' : 'bg-secondary/50')}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className={cn('text-xs font-black', i === 0 ? 'text-accent' : 'text-muted-foreground')}>
-                      #{i + 1}
-                    </span>
-                    <span className="text-lg">{s.department.emoji}</span>
-                  </div>
-                  <span className="text-xs font-semibold text-foreground">{s.avg}/5</span>
+            {deptStats.map((s: any, i: number) => (
+              <div key={s.department.id} className="bg-secondary/30 p-3 rounded-xl">
+                <div className="flex justify-between text-xs font-bold">
+                  <span>{s.department.emoji} {s.department.nameAr}</span>
+                  <span>{s.avg}/5</span>
                 </div>
-                <div className="text-xs font-semibold text-foreground mb-1.5 truncate">{s.department.nameAr}</div>
-                <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className={cn('h-full rounded-full transition-all', i === 0 ? 'bg-accent' : 'bg-primary')}
-                    style={{ width: `${(s.avg / 5) * 100}%` }}
-                  />
+                <div className="h-1.5 bg-muted rounded-full mt-2 overflow-hidden">
+                  <div className="h-full bg-primary" style={{ width: `${(s.avg / 5) * 100}%` }} />
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-1">{s.count} تقييم</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Recent Feedback Table */}
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <div>
-            <p className="font-bold text-foreground text-sm">أحدث التقييمات</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              آخر {filtered.length} تقييم
-            </p>
-          </div>
-          <button
-            onClick={exportCSV}
-            className="flex items-center gap-2 px-3 py-2 bg-secondary hover:bg-secondary/70 text-secondary-foreground rounded-xl text-xs font-semibold transition-all"
-          >
-            <Download className="w-3.5 h-3.5" />
-            تصدير CSV
+          <p className="font-bold text-foreground text-sm">أحدث التقييمات من Supabase</p>
+          <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-xl text-xs font-bold">
+            <Download className="w-3.5 h-3.5" /> تصدير CSV
           </button>
         </div>
-
-        {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-right bg-secondary/40">
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground">القسم</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground">التقييم</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground hidden md:table-cell">التعليق</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground">التاريخ</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground"></th>
+          <table className="w-full text-right">
+            <thead className="bg-secondary/50 text-xs text-muted-foreground">
+              <tr>
+                <th className="px-5 py-3">القسم</th>
+                <th className="px-5 py-3">التقييم</th>
+                <th className="px-5 py-3">التعليق</th>
+                <th className="px-5 py-3">التاريخ</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.slice().reverse().map((entry) => {
-                const dept = DEPARTMENTS.find(d => d.id === entry.departmentId)
-                return (
-                  <tr key={entry.id} className="hover:bg-secondary/20 transition-colors">
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{dept?.emoji}</span>
-                        <div>
-                          <p className="font-semibold text-foreground text-xs">{entry.departmentNameAr}</p>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{entry.departmentNameEn}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <RatingBadge rating={entry.averageRating} />
-                    </td>
-                    <td className="px-5 py-3.5 hidden md:table-cell max-w-[220px]">
-                      <p className="text-xs text-muted-foreground truncate">
-                        {entry.comment || '—'}
-                      </p>
-                    </td>
-                    <td className="px-5 py-3.5 text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(entry.createdAt).toLocaleDateString('ar-SA')}
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <button className="text-primary hover:text-primary/70 transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                )
-              })}
+              {filtered.map((entry) => (
+                <tr key={entry.id} className="text-xs hover:bg-secondary/20">
+                  <td className="px-5 py-3 font-bold">{entry.departmentName}</td>
+                  <td className="px-5 py-3"><RatingBadge rating={entry.overallRating} /></td>
+                  <td className="px-5 py-3 text-muted-foreground">{entry.comment || '—'}</td>
+                  <td className="px-5 py-3">{new Date(entry.createdAt).toLocaleDateString('ar-SA')}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </div>
-
-        <div className="px-5 py-3 border-t border-border text-xs text-muted-foreground text-center">
-          عرض {filtered.length} تقييم
         </div>
       </div>
     </div>

@@ -28,102 +28,63 @@ export interface FeedbackEntry {
 }
 
 // ─── Departments & Questions ──────────────────────────────────────────────────
+// أضف حقل apologyAr للـ Interface
+export interface Department {
+  id: string
+  nameAr: string
+  nameEn: string
+  emoji: string
+  questions: Question[]
+  apologyAr: string; // الحقل الجديد للرسالة المخصصة
+  image?: string
+}
 
 export const DEPARTMENTS: Department[] = [
   {
     id: 'bakery',
-    nameAr: 'المخبوزات',
+    nameAr: 'قسم المخبوزات',
     nameEn: 'Bakery',
     emoji: '🥖',
+    apologyAr: "نعتذر منك بشدة، فجودة تجربتك هي أولويتنا.. 🥖 نحن نؤمن أن كل ملاحظة هي فرصة للتطور. فضلاً، ساعدنا لنفهم ما حدث.",
     questions: [
-      { id: 'taste', ar: 'كيف تقيم طعم وطراوة المخبوزات؟', en: 'How do you rate the taste and freshness of the baked goods?', icon: 'bread' },
-      { id: 'variety', ar: 'ما رأيك في تنوع منتجات المخبوزات؟', en: 'How do you rate the variety of bakery products?', icon: 'list' },
-      { id: 'availability', ar: 'هل المنتجات متوفرة بشكل دائم؟', en: 'Are the products consistently available?', icon: 'check' },
-      { id: 'service', ar: 'كيف تقيم خدمة موظفي قسم المخبوزات؟', en: 'How do you rate the bakery staff service?', icon: 'user' },
-    ],
-  },
-  {
-    id: 'vegetables',
-    nameAr: 'الخضروات',
-    nameEn: 'Vegetables',
-    emoji: '🥦',
-    questions: [
-      { id: 'freshness', ar: 'كيف تقيم طازجية الخضروات؟', en: 'How do you rate the freshness of vegetables?', icon: 'leaf' },
-      { id: 'sorting', ar: 'ما رأيك في ترتيب وجودة عرض الخضروات؟', en: 'How do you rate the sorting and display quality?', icon: 'sparkles' },
-      { id: 'variety', ar: 'ما رأيك في تنوع الخضروات المتوفرة؟', en: 'How do you rate the variety of vegetables available?', icon: 'list' },
-      { id: 'price', ar: 'كيف تقيم الأسعار مقارنة بالجودة؟', en: 'How do you rate the prices compared to quality?', icon: 'tag' },
-    ],
-  },
-  {
-    id: 'fruits',
-    nameAr: 'الفواكه',
-    nameEn: 'Fruits',
-    emoji: '🍎',
-    questions: [
-      { id: 'freshness', ar: 'كيف تقيم طازجية الفواكه؟', en: 'How do you rate the freshness of fruits?', icon: 'leaf' },
-      { id: 'ripeness', ar: 'هل الفواكه ناضجة ومناسبة للأكل؟', en: 'Are the fruits ripe and ready to eat?', icon: 'check' },
-      { id: 'variety', ar: 'ما رأيك في تنوع الفواكه المتوفرة؟', en: 'How do you rate the variety of fruits available?', icon: 'list' },
-      { id: 'display', ar: 'ما رأيك في نظافة قسم الفواكه وترتيبه؟', en: 'How do you rate the cleanliness and organization?', icon: 'sparkles' },
+      { id: 'taste', ar: 'كيف تقيم طعم وطراوة المخبوزات؟', en: 'How do you rate the taste and freshness?', icon: 'bread' },
+      { id: 'cleanliness', ar: 'ما رأيك في مستوى نظافة المتجر والعرض؟', en: 'How do you rate the cleanliness and display?', icon: 'sparkles' },
+      { id: 'staff', ar: 'كيف كانت تجربة التعامل مع الموظفين؟', en: 'How was your experience with the staff?', icon: 'user' },
+      { id: 'availability', ar: 'هل وجدت الأصناف التي كنت تبحث عنها؟', en: 'Did you find what you were looking for?', icon: 'check' },
     ],
   },
   {
     id: 'dairy',
-    nameAr: 'الألبان والأجبان',
+    nameAr: 'قسم الألبان والأجبان',
     nameEn: 'Dairy',
     emoji: '🧀',
+    apologyAr: "هدفنا أن نصل لبيتك بأفضل جودة.. نعتذر منك. فضلاً، ساعدنا لنفهم ما حدث لتجنب تكراره.",
     questions: [
-      { id: 'quality', ar: 'كيف تقيم جودة منتجات الألبان؟', en: 'How do you rate the quality of dairy products?', icon: 'star' },
-      { id: 'variety', ar: 'ما رأيك في تنوع منتجات الألبان والأجبان؟', en: 'How do you rate the variety of dairy and cheese products?', icon: 'list' },
-      { id: 'expiry', ar: 'هل تواريخ الصلاحية مناسبة وواضحة؟', en: 'Are the expiry dates appropriate and clear?', icon: 'calendar' },
-      { id: 'temperature', ar: 'هل درجة حرارة التبريد مناسبة؟', en: 'Is the refrigeration temperature appropriate?', icon: 'thermometer' },
+      { id: 'quality', ar: 'كيف تقيم طعم وجودة الأجبان المختارة؟', en: 'How do you rate the cheese quality?', icon: 'star' },
+      { id: 'service', ar: 'ما مدى رضاك عن سرعة إنجاز طلبك؟', en: 'How satisfied are you with the service speed?', icon: 'zap' },
     ],
   },
   {
-    id: 'meat',
-    nameAr: 'اللحوم',
-    nameEn: 'Meat',
-    emoji: '🥩',
+    id: 'vegetables',
+    nameAr: 'قسم الخضروات والفواكه',
+    nameEn: 'Vegetables & Fruits',
+    emoji: '🥦',
+    apologyAr: "يؤسفنا جداً أن منتجاتنا لم تكن بمستوى توقعاتك اليوم. نحن نحرص على الفرز اليومي وملاحظتك ستجعلنا نراجع المعايير فوراً.",
     questions: [
-      { id: 'freshness', ar: 'كيف تقيم طازجية اللحوم؟', en: 'How do you rate the freshness of meat?', icon: 'leaf' },
-      { id: 'quality', ar: 'ما رأيك في جودة قطع اللحم؟', en: 'How do you rate the quality of meat cuts?', icon: 'star' },
-      { id: 'cleanliness', ar: 'ما رأيك في نظافة قسم اللحوم؟', en: 'How do you rate the cleanliness of the meat section?', icon: 'sparkles' },
-      { id: 'service', ar: 'كيف تقيم خدمة الجزار؟', en: 'How do you rate the butcher service?', icon: 'user' },
-    ],
-  },
-  {
-    id: 'fish',
-    nameAr: 'الأسماك',
-    nameEn: 'Fish & Seafood',
-    emoji: '🐟',
-    questions: [
-      { id: 'freshness', ar: 'كيف تقيم طازجية الأسماك والمأكولات البحرية؟', en: 'How do you rate the freshness of fish and seafood?', icon: 'leaf' },
-      { id: 'smell', ar: 'هل رائحة القسم مقبولة؟', en: 'Is the section smell acceptable?', icon: 'wind' },
-      { id: 'variety', ar: 'ما رأيك في تنوع الأسماك المتوفرة؟', en: 'How do you rate the variety of fish available?', icon: 'list' },
-      { id: 'service', ar: 'كيف تقيم خدمة قسم الأسماك؟', en: 'How do you rate the fish section service?', icon: 'user' },
-    ],
-  },
-  {
-    id: 'deli',
-    nameAr: 'المعلبات والمواد الغذائية',
-    nameEn: 'Deli & Groceries',
-    emoji: '🥫',
-    questions: [
-      { id: 'availability', ar: 'هل المنتجات التي تبحث عنها متوفرة؟', en: 'Are the products you need available?', icon: 'check' },
-      { id: 'organization', ar: 'ما رأيك في ترتيب الرفوف وسهولة الوصول؟', en: 'How do you rate the shelf organization and accessibility?', icon: 'list' },
-      { id: 'expiry', ar: 'هل تواريخ الصلاحية مناسبة؟', en: 'Are the expiry dates appropriate?', icon: 'calendar' },
-      { id: 'price', ar: 'كيف تقيم الأسعار؟', en: 'How do you rate the prices?', icon: 'tag' },
+      { id: 'quality', ar: 'كيف تقيم طعم وجودة الخضروات والفواكه؟', en: 'How do you rate the quality?', icon: 'leaf' },
+      { id: 'staff', ar: 'هل كان الموظفون متعاونين في الإجابة على استفساراتك؟', en: 'Were the staff helpful?', icon: 'user' },
     ],
   },
   {
     id: 'service',
-    nameAr: 'الخدمة العامة',
+    nameAr: 'الاستقبال والخدمة العامة',
     nameEn: 'General Service',
     emoji: '⭐',
+    apologyAr: "نعتذر عن أي تقصير في خدمتنا. نعدك بالعمل على تحسين مهارات فريقنا لضمان رضاك في المرات القادمة.",
     questions: [
-      { id: 'staff', ar: 'كيف تقيم تعامل الموظفين مع العملاء؟', en: 'How do you rate staff interaction with customers?', icon: 'user' },
-      { id: 'cleanliness', ar: 'ما رأيك في نظافة المتجر بشكل عام؟', en: 'How do you rate the overall store cleanliness?', icon: 'sparkles' },
-      { id: 'speed', ar: 'كيف تقيم سرعة الخدمة عند الصناديق؟', en: 'How do you rate the checkout speed?', icon: 'zap' },
-      { id: 'overall', ar: 'ما تقييمك العام لتجربة التسوق؟', en: 'What is your overall shopping experience rating?', icon: 'star' },
+      { id: 'welcome', ar: 'كيف تقيم أسلوب ترحيب الموظفين بك عند الدخول؟', en: 'How was the staff welcome?', icon: 'user' },
+      { id: 'speed', ar: 'ما مدى رضاك عن سرعة إنجاز طلبك عند الكاشير؟', en: 'How was the checkout speed?', icon: 'zap' },
+      { id: 'grooming', ar: 'كيف تقيم مهنية الموظفين وهندامهم الرسمي؟', en: 'How was the staff professional look?', icon: 'check' },
     ],
   },
 ]

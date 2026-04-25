@@ -8,8 +8,15 @@ import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 
 function getBaseUrl() {
-  if (typeof window !== 'undefined') return window.location.origin
-  return 'https://hala.market'
+  // 1. إذا كان الموقع شغال في المتصفح، يأخذ الرابط الحالي
+  if (typeof window !== 'undefined') return window.location.origin;
+
+  // 2. إذا كان يتم بناؤه على السيرفر، يأخذ رابط الفيرسل أو الرابط الافتراضي
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+
+  return 'http://localhost:3000'; // الرابط الاحتياطي
 }
 
 function getSurveyUrl(deptId: string) {
