@@ -7,28 +7,31 @@ import { cn } from '@/lib/utils'
 interface StarRatingProps {
   value: number
   onChange: (value: number) => void
+  onHoverChange?: (value: number) => void
   language?: 'ar' | 'en'
 }
 
-export function StarRating({ value, onChange, language = 'ar' }: StarRatingProps) {
+export function StarRating({ value, onChange, onHoverChange, language = 'ar' }: StarRatingProps) {
   const [hovered, setHovered] = useState(0)
+  const isRtl = language === 'ar'
 
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Stars */}
+      {/* حاوية النجوم فقط */}
       <div
-        className="flex gap-2"
+        className={cn(
+          "flex gap-2",
+          isRtl ? "flex-row-reverse" : "flex-row"
+        )}
         dir="ltr"
-        onMouseLeave={() => setHovered(0)}
-      >
+onMouseLeave={() => { setHovered(0); onHoverChange?.(0); }}      >
         {[1, 2, 3, 4, 5].map((star) => (
           <motion.button
             key={star}
             type="button"
             whileTap={{ scale: 0.85 }}
             whileHover={{ scale: 1.15 }}
-            onMouseEnter={() => setHovered(star)}
-            onClick={() => onChange(star)}
+onMouseEnter={() => { setHovered(star); onHoverChange?.(star); }}            onClick={() => onChange(star)}
             className="focus:outline-none"
             aria-label={`${star} star`}
           >
@@ -47,26 +50,7 @@ export function StarRating({ value, onChange, language = 'ar' }: StarRatingProps
         ))}
       </div>
 
-      {/* Slider track visual */}
-      <div className="w-full max-w-[220px] relative h-1 bg-secondary rounded-full overflow-hidden">
-        <motion.div 
-          className="absolute inset-y-0 left-0 bg-amber-500 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${((hovered || value) / 5) * 100}%` }}
-          transition={{ duration: 0.15 }}
-        />
-        <div className="absolute inset-0 flex justify-between px-1">
-          {[1, 2, 3, 4, 5].map((dot) => (
-            <div 
-              key={dot} 
-              className={cn(
-                'w-1.5 h-1.5 rounded-full -mt-0.5 transition-colors',
-                dot <= (hovered || value) ? 'bg-amber-600' : 'bg-border'
-              )} 
-            />
-          ))}
-        </div>
-      </div>
+      {/* تم حذف كود Slider track visual من هنا بالكامل */}
     </div>
   )
 }
