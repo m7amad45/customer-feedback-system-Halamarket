@@ -1,6 +1,7 @@
 'use client'
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'edge' // جرب إضافة هذا السطر لتهريب الصفحة من نظام الـ Build التقليدي
 import { useState, useMemo, useEffect } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
