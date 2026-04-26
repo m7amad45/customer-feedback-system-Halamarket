@@ -126,13 +126,34 @@ export default function DashboardPage() {
 
   // بيانات الرسم البياني (بشكل مبسط للأيام الأخيرة)
   const chartData = useMemo(() => {
-    const days: any = {}
-    feedbacks.slice(0, 30).forEach(f => {
-      const date = new Date(f.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
-      days[date] = (days[date] || 0) + f.overallRating
-    })
-    return Object.keys(days).map(key => ({ date: key, rating: (days[key] / feedbacks.length * 5).toFixed(1) }))
-  }, [feedbacks])
+    if (!Array.isArray(feedbacks) || feedbacks.length === 0) return [];
+
+    const days: Record<string, { sum: number; count: number }> = {};
+
+    // 1. تجميع البيانات حسب التاريخ
+    feedbacks.forEach(f => {
+      if (!f.createdAt) return;
+      // تحويل التاريخ لصيغة (يوم/شهر)
+      const date = new Date(f.createdAt).toLocaleDateString('en-US', { 
+        day: 'numeric', 
+        month: 'short' 
+      });
+      
+      if (!days[date]) {
+        days[date] = { sum: 0, count: 0 };
+      }
+      days[date].sum += (f.overallRating || 0);
+      days[date].count += 1;
+    });
+
+    // 2. تحويل البيانات لشكل يفهمه الشارت وترتيبها زمنياً
+    return Object.keys(days)
+      .map(date => ({
+        date,
+        rating: Number((days[date].sum / days[date].count).toFixed(1))
+      }))
+      .reverse(); // عكس القائمة ليكون الترتيب من الأقدم للأحدث (يسار لليمين)
+  }, [feedbacks]);
 
   function exportCSV() {
     const headers = ['القسم', 'التقييم', 'التعليق', 'التاريخ']
