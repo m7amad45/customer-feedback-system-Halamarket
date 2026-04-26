@@ -1,37 +1,47 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js'
+import { NextResponse } from 'next/server'
 
-const prisma = new PrismaClient();
+// استخدام العميل المباشر للسيرفر
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
 
-// دالة الإرسال (موجودة عندك سابقاً)
-export async function POST(request: Request) {
+export async function GET() {
   try {
-    const body = await request.json();
-    const feedback = await prisma.feedback.create({
-      data: {
-        departmentId: body.departmentId,
-        departmentName: body.departmentName,
-        overallRating: body.overallRating,
-        comment: body.comment,
-        answers: body.answers,
-      },
-    });
-    return NextResponse.json({ success: true, id: feedback.id });
+    const { data, error } = await supabase
+      .from('Feedback') // تأكد أن الحرف F كبير كما في السوبابيس
+      .select('*')
+      .order('createdAt', { ascending: false })
+
+    if (error) throw error
+
+    return NextResponse.json(data || [])
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error("API Error:", error)
+    return NextResponse.json([], { status: 500 }) // نرجع مصفوفة فارغة لضمان عدم انهيار الداشبورد
   }
 }
 
-// --- الدالة الجديدة لجلب البيانات ---
-export async function GET() {
+export async function POST(request: Request) {
   try {
-    const feedbacks = await prisma.feedback.findMany({
-      orderBy: {
-        createdAt: 'desc', // يجيب أحدث التقييمات فوق
-      },
-    });
-    return NextResponse.json(feedbacks);
+    const body = await request.json()
+    const { data, error } = await supabase
+      .from('Feedback')
+      .insert([
+        {
+          departmentId: body.departmentId,
+          departmentName: body.departmentName,
+          overallRating: body.overallRating,
+          comment: body.comment,
+          answers: body.answers,
+        }
+      ])
+      .select()
+
+    if (error) throw error
+    return NextResponse.json({ success: true, data })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
   }
 }

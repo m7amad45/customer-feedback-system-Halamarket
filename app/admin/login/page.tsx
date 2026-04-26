@@ -3,11 +3,12 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase" // تأكد من وجود الملف اللي أنشأناه
+import { createClient } from "@/lib/supabase"
+import Image from "next/image"
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient() // تعريف سوبا بيس
+  const supabase = createClient()
   
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -21,7 +22,6 @@ export default function LoginPage() {
     const email = formData.get("email") as string
     const password = formData.get("password") as string
 
-    // الربط مع سوبا بيس بدلاً من الـ IF اليدوية
     const { error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -31,7 +31,6 @@ export default function LoginPage() {
       setError("البريد الإلكتروني أو كلمة المرور غير صحيحة")
       setIsLoading(false)
     } else {
-      // إذا نجح الدخول، سوبا بيس يدير التوكن تلقائياً
       router.push("/admin/dashboard")
       router.refresh()
     }
@@ -40,11 +39,19 @@ export default function LoginPage() {
   return (
     <div className="fixed inset-0 min-h-screen flex flex-col items-center justify-center bg-[#F8F9FB] z-[99999]" dir="rtl">
       
-      {/* القسم العلوي */}
-      <div className="flex flex-col items-center mb-4 text-center">
-        <div className="text-2xl mb-1 grayscale opacity-80">🌿</div>
+      {/* القسم العلوي - اللوجو المصغر كالصورة */}
+      <div className="flex flex-col items-center mb-5 text-center">
+        <div className="mb-2">
+          <Image 
+            src="/E33.png" 
+            alt="Hala Markets Logo" 
+            width={120} 
+            height={40} 
+            priority
+            className="w-28 md:w-32 h-auto object-contain"
+          />
+        </div>
         <h1 className="text-xl font-bold text-slate-800">تسجيل الدخول</h1>
-        <p className="text-[10px] text-slate-400 mt-0.5">لوحة تحكم هلا آي</p>
       </div>
 
       {/* الكارد */}
@@ -100,11 +107,15 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* الزر */}
+          {/* الزر الذي يتغير لونه للأصفر عند التحقق */}
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex h-10 items-center justify-center rounded-lg bg-orange-600 px-8 py-2 text-[14px] font-bold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-700 active:scale-[0.98] disabled:opacity-50"
+            className={`w-full flex h-10 items-center justify-center rounded-lg px-8 py-2 text-[14px] font-bold shadow-md transition-all active:scale-[0.98] ${
+              isLoading 
+                ? "bg-[#FFD130] text-white shadow-[#FFD130]/20" 
+                : "bg-orange-600 text-white shadow-orange-500/20 hover:bg-orange-700"
+            }`}
           >
             {isLoading ? "جاري التحقق..." : "تسجيل الدخول"}
           </button>
