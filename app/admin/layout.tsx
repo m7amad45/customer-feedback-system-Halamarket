@@ -19,28 +19,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
   
-  // --- التعديل هنا: محاولة قراءة الإيميل من المتصفح فوراً ---
-  const [adminEmail, setAdminEmail] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('admin_email') || 'جاري التحميل...'
-    }
-    return 'جاري التحميل...'
-  })
-  
+  // حل مشكلة Hydration: نبدأ بحالات محايدة
+  const [mounted, setMounted] = useState(false)
+  const [adminEmail, setAdminEmail] = useState('...')
   const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
+    // نخبر React أننا الآن في المتصفح (العميل)
+    setMounted(true)
+
     const checkUser = async () => {
-      // 1. فحص الجلسة المحلية (سريع)
+      // 1. محاولة قراءة الإيميل من الذاكرة المحلية (Client-side only)
+      const savedEmail = localStorage.getItem('admin_email')
+      if (savedEmail) setAdminEmail(savedEmail)
+
+      // 2. فحص الجلسة من سوبابيس
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
         const email = session.user.email || ''
         setAdminEmail(email)
         setAuthorized(true)
-        localStorage.setItem('admin_email', email) // حفظ للإستخدام القادم
+        localStorage.setItem('admin_email', email)
       } else {
-        // 2. إذا لم يجد جلسة، يتأكد من السيرفر
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const email = user.email || ''
@@ -48,14 +49,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setAuthorized(true)
           localStorage.setItem('admin_email', email)
         } else if (pathname !== '/admin/login') {
-          router.replace('/admin/login');
+          router.replace('/admin/login')
         }
       }
     };
 
     checkUser();
 
-    // 3. مراقب الحالة: يغير البريد فوراً عند تسجيل الدخول أو الخروج
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const email = session.user.email || ''
@@ -64,8 +64,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         localStorage.setItem('admin_email', email)
       } else if (pathname !== '/admin/login') {
         setAuthorized(false)
-        localStorage.removeItem('admin_email') // مسح الإيميل عند الخروج
-        router.replace('/admin/login');
+        localStorage.removeItem('admin_email')
+        router.replace('/admin/login')
       }
     });
 
@@ -73,13 +73,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router, supabase.auth, pathname]);
 
   const handleLogout = async () => {
-    localStorage.removeItem('admin_email') // مسح عند تسجيل الخروج يدوياً
+    localStorage.removeItem('admin_email')
     await supabase.auth.signOut()
     router.replace('/admin/login')
   }
 
+  // الحماية: لا نعرض المحتوى حتى نتأكد من الصلاحية (إلا في صفحة اللوجن)
   if (!authorized && pathname !== '/admin/login') {
-    return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-bold text-slate-400">جاري التحقق...</div>
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-bold text-slate-400">
+        جاري التحقق...
+      </div>
+    )
   }
 
   return (
@@ -130,8 +135,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <User className="w-5 h-5 text-[#92400E]" />
             </div>
             <div className="flex-1 min-w-0">
-              {/* هنا سيظهر الإيميل فوراً من الـ localStorage */}
-              <p className="text-[12px] font-bold text-slate-800 truncate" dir="ltr">{adminEmail}</p>
+              <p className="text-[12px] font-bold text-slate-800 truncate" dir="ltr">
+                {/* السر هنا: لا نعرض الإيميل إلا بعد أن "يستقر" المكون في المتصفح */}
+                {mounted ? adminEmail : '...'}
+              </p>
             </div>
           </div>
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 w-full rounded-xl text-xs font-bold text-slate-900 hover:text-red-600 hover:bg-red-50 transition-all group">

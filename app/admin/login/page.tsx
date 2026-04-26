@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase"
 import Image from "next/image"
 
+export const dynamic = 'force-dynamic'
 export default function LoginPage() {
   const router = useRouter()
   const supabase = createClient()
