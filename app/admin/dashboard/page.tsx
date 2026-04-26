@@ -269,7 +269,7 @@ export default function DashboardPage() {
 
       <div className="bg-card border border-border rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <p className="font-bold text-foreground text-sm">أحدث التقييمات من Supabase</p>
+          <p className="font-bold text-foreground text-sm">أحدث التقييمات</p>
           <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2 bg-secondary rounded-xl text-xs font-bold">
             <Download className="w-3.5 h-3.5" /> تصدير CSV
           </button>

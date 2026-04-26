@@ -19,6 +19,13 @@ export default function SurveyPage() {
   )
 }
 
+const departmentImages: Record<string, string> = {
+  'bakery': '/bakery.jpg',
+  'vegetables': '/vegetables.jpg',
+  'dairy': '/dairy.jpg',
+  'service': '/hala-store.jpg',
+};
+
 function SurveyContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const searchParams = useSearchParams()
@@ -179,7 +186,7 @@ function SurveyContent() {
               {/* 2. تصغير الصورة (w-5/6) لتكون أصغر قليلاً من السابق */}
               <div className="w-5/6 rounded-2xl overflow-hidden relative aspect-video shadow-md">
                 <Image
-                  src="/hala-store.jpg"
+                  src={department ? departmentImages[department.id] : '/hala-store.jpg'}
                   alt="Hala Markets Store"
                   fill
                   className="object-cover"
