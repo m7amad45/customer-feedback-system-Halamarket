@@ -1,15 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+export const createClient = () => {
+  // نستخدم قيم وهمية فقط أثناء الـ Build لمنع الانهيار
+  // في المتصفح الحقيقي سيأخذ القيم من Vercel تلقائياً
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://temp-url.supabase.co'
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'temp-key'
 
-// فحص للتأكد أن المتغيرات موجودة قبل محاولة إنشاء العميل
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("⚠️ Supabase keys are missing. Check your .env file or Vercel settings.")
+  return createBrowserClient(url, key)
 }
-
-export const createClient = () =>
-  createBrowserClient(
-    supabaseUrl || '',
-    supabaseAnonKey || ''
-  )

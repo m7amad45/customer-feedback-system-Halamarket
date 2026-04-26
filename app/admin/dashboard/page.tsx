@@ -1,5 +1,6 @@
 'use client'
-
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
 import { useState, useMemo, useEffect } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
