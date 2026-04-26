@@ -18,26 +18,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [adminEmail, setAdminEmail] = useState('جاري التحميل...')
-  // أضفنا هذه الحالة لحل مشكلة التأخير ومنع الوميض
+  
+  // --- التعديل هنا: محاولة قراءة الإيميل من المتصفح فوراً ---
+  const [adminEmail, setAdminEmail] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin_email') || 'جاري التحميل...'
+    }
+    return 'جاري التحميل...'
+  })
+  
   const [authorized, setAuthorized] = useState(false)
 
   useEffect(() => {
     const checkUser = async () => {
-      // 1. فحص الجلسة المحلية (أسرع طريقة لإظهار البريد)
+      // 1. فحص الجلسة المحلية (سريع)
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        setAdminEmail(session.user.email || '');
-        setAuthorized(true);
+        const email = session.user.email || ''
+        setAdminEmail(email)
+        setAuthorized(true)
+        localStorage.setItem('admin_email', email) // حفظ للإستخدام القادم
       } else {
         // 2. إذا لم يجد جلسة، يتأكد من السيرفر
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          setAdminEmail(user.email || '');
-          setAuthorized(true);
+          const email = user.email || ''
+          setAdminEmail(email)
+          setAuthorized(true)
+          localStorage.setItem('admin_email', email)
         } else if (pathname !== '/admin/login') {
-          // إذا لم يجد مستخدم وهو ليس في صفحة اللوجن، يطرده
           router.replace('/admin/login');
         }
       }
@@ -48,10 +58,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // 3. مراقب الحالة: يغير البريد فوراً عند تسجيل الدخول أو الخروج
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setAdminEmail(session.user.email || '');
-        setAuthorized(true);
+        const email = session.user.email || ''
+        setAdminEmail(email)
+        setAuthorized(true)
+        localStorage.setItem('admin_email', email)
       } else if (pathname !== '/admin/login') {
-        setAuthorized(false);
+        setAuthorized(false)
+        localStorage.removeItem('admin_email') // مسح الإيميل عند الخروج
         router.replace('/admin/login');
       }
     });
@@ -60,11 +73,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [router, supabase.auth, pathname]);
 
   const handleLogout = async () => {
+    localStorage.removeItem('admin_email') // مسح عند تسجيل الخروج يدوياً
     await supabase.auth.signOut()
     router.replace('/admin/login')
   }
 
-  // منع عرض أي شيء حتى يتم التأكد من الصلاحية (إلا في صفحة اللوجن)
   if (!authorized && pathname !== '/admin/login') {
     return <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center font-bold text-slate-400">جاري التحقق...</div>
   }
@@ -87,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               width={100}
               height={35}
               priority
-              style={{ height: 'auto' }} // حل مشكلة التحذير في التيرمينال
+              style={{ height: 'auto' }}
               className="object-contain"
             />
           </Link>
@@ -117,6 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <User className="w-5 h-5 text-[#92400E]" />
             </div>
             <div className="flex-1 min-w-0">
+              {/* هنا سيظهر الإيميل فوراً من الـ localStorage */}
               <p className="text-[12px] font-bold text-slate-800 truncate" dir="ltr">{adminEmail}</p>
             </div>
           </div>
