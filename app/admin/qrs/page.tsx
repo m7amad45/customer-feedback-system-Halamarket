@@ -1,5 +1,6 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
 import { useState, useRef, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { Download, ExternalLink, Copy, Check } from 'lucide-react'
