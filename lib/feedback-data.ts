@@ -5,6 +5,8 @@ export interface Question {
   ar: string
   en: string
   icon: string
+  // الحقل الجديد لخيارات "لماذا لم يعجبك؟"
+  lowRatingOptions?: string[]
 }
 
 export interface Department {
@@ -47,10 +49,34 @@ export const DEPARTMENTS: Department[] = [
     emoji: '🥖',
     apologyAr: "نعتذر منك بشدة، فجودة تجربتك هي أولويتنا.. 🥖 نحن نؤمن أن كل ملاحظة هي فرصة للتطور. فضلاً، ساعدنا لنفهم ما حدث.",
     questions: [
-      { id: 'taste', ar: 'كيف تقيم طعم وطراوة المخبوزات؟', en: 'How do you rate the taste and freshness?', icon: 'bread' },
-      { id: 'cleanliness', ar: 'ما رأيك في مستوى نظافة المتجر والعرض؟', en: 'How do you rate the cleanliness and display?', icon: 'sparkles' },
-      { id: 'staff', ar: 'كيف كانت تجربة التعامل مع الموظفين؟', en: 'How was your experience with the staff?', icon: 'user' },
-      { id: 'availability', ar: 'هل وجدت الأصناف التي كنت تبحث عنها؟', en: 'Did you find what you were looking for?', icon: 'check' },
+      { 
+        id: 'taste', 
+        ar: 'كيف تقيم طعم وطراوة المخبوزات؟', 
+        en: 'How do you rate the taste and freshness?', 
+        icon: 'bread',
+        lowRatingOptions: ['قاسية/غير طازجة', 'الطعم غير جيد', 'محترقة قليلاً', 'سعر مرتفع', 'أخرى'] 
+      },
+      { 
+        id: 'cleanliness', 
+        ar: 'ما رأيك في مستوى نظافة المتجر والعرض؟', 
+        en: 'How do you rate the cleanliness and display?', 
+        icon: 'sparkles',
+        lowRatingOptions: ['أرفف غير منظمة', 'وجود أتربة', 'الأكياس غير متوفرة', 'أخرى']
+      },
+      { 
+        id: 'staff', 
+        ar: 'كيف كانت تجربة التعامل مع الموظفين؟', 
+        en: 'How was your experience with the staff?', 
+        icon: 'user',
+        lowRatingOptions: ['تجاهل الموظف', 'أسلوب غير لائق', 'عدم معرفة بالمنتجات', 'أخرى']
+      },
+      { 
+        id: 'availability', 
+        ar: 'هل وجدت الأصناف التي كنت تبحث عنها؟', 
+        en: 'Did you find what you were looking for?', 
+        icon: 'check',
+        lowRatingOptions: ['صنف محدد ناقص', 'الكمية قليلة', 'الأصناف المميزة منتهية', 'أخرى']
+      },
     ],
   },
   {
@@ -59,9 +85,21 @@ export const DEPARTMENTS: Department[] = [
     nameEn: 'Dairy',
     emoji: '🧀',
     apologyAr: "هدفنا أن نصل لبيتك بأفضل جودة.. نعتذر منك. فضلاً، ساعدنا لنفهم ما حدث لتجنب تكراره.",
-    questions: [
-      { id: 'quality', ar: 'كيف تقيم طعم وجودة الأجبان المختارة؟', en: 'How do you rate the cheese quality?', icon: 'star' },
-      { id: 'service', ar: 'ما مدى رضاك عن سرعة إنجاز طلبك؟', en: 'How satisfied are you with the service speed?', icon: 'zap' },
+   questions: [
+      { 
+        id: 'quality', 
+        ar: 'كيف تقيم طعم وجودة الأجبان المختارة؟', 
+        en: 'How do you rate the cheese quality?', 
+        icon: 'star',
+        lowRatingOptions: ['طعم قديم', 'تغير في اللون', 'التغليف سيء', 'أخرى']
+      },
+      { 
+        id: 'service', 
+        ar: 'ما مدى رضاك عن سرعة إنجاز طلبك؟', 
+        en: 'How satisfied are you with the service speed?', 
+        icon: 'zap',
+        lowRatingOptions: ['انتظار طويل', 'بطء في التقطيع', 'انشغال الموظف', 'أخرى']
+      },
     ],
   },
   {

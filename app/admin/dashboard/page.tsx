@@ -15,6 +15,55 @@ import {
 } from '@/lib/feedback-data'
 import { cn } from '@/lib/utils'
 
+function ReasonsList({ answers }: { answers: any }) {
+  if (!answers) return null;
+
+  // دالة ذكية للبحث عن نص السؤال بالعربي من ملف البيانات
+  const getQuestionText = (id: string) => {
+  // نبحث في كل الأقسام
+  for (const dept of DEPARTMENTS) {
+    // نحدد النوع هنا كـ any لتجاوز قيود الـ Interface المؤقتة
+    const q = dept.questions.find((question: any) => question.id === id);
+    
+    // نتحقق أن السؤال موجود وأن لديه خاصية ar
+    if (q && typeof q === 'object' && 'ar' in q) {
+      return (q.ar as string).replace('؟', '');
+    }
+  }
+  return id; // إذا لم يجد شيئاً يعيد الـ id كـ fallback
+};
+  return (
+    <div className="flex flex-col gap-2 mt-2">
+      {Object.entries(answers).map(([key, data]: [string, any]) => {
+        // نتحقق إذا كانت الإجابة كائن يحتوي على أسباب (يعني تقييم منخفض)
+        if (typeof data === 'object' && data.reasons && data.reasons.length > 0) {
+          return (
+            <div key={key} className="flex flex-col gap-1 items-start bg-secondary/20 p-2 rounded-lg border border-border/50">
+              {/* عرض نص السؤال العربي تلقائياً */}
+              <span className="text-[10px] font-bold text-primary">
+                {getQuestionText(key)}:
+              </span>
+              
+              <div className="flex flex-wrap gap-1">
+                {data.reasons.map((reason: string) => (
+                  <span 
+                    key={reason} 
+                    className="bg-destructive/10 text-destructive text-[10px] px-2 py-0.5 rounded-full border border-destructive/20 font-semibold"
+                  >
+                    {reason === 'أخرى' && data.other ? `أخرى: ${data.other}` : reason}
+                  </span>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        return null;
+      })}
+    </div>
+  );
+}
+
+
 const RATING_COLORS: Record<number, string> = {
   1: 'bg-destructive/15 text-destructive border-destructive/30',
   2: 'bg-orange-100 text-orange-700 border-orange-200',
@@ -157,23 +206,58 @@ export default function DashboardPage() {
       .reverse(); // عكس القائمة ليكون الترتيب من الأقدم للأحدث (يسار لليمين)
   }, [feedbacks]);
 
-  function exportCSV() {
-    const headers = ['القسم', 'التقييم', 'التعليق', 'التاريخ']
-    const rows = filtered.map((f) => [
+ function exportCSV() {
+  const headers = ['القسم', 'التقييم', 'التعليق', 'الأسباب التفصيلية', 'التاريخ']
+
+  // دالة مساعدة لجلب نص السؤال من ملف البيانات
+  const getQuestionText = (id: string) => {
+  // نبحث في كل الأقسام
+  for (const dept of DEPARTMENTS) {
+    // نحدد النوع هنا كـ any لتجاوز قيود الـ Interface المؤقتة
+    const q = dept.questions.find((question: any) => question.id === id);
+    
+    // نتحقق أن السؤال موجود وأن لديه خاصية ar
+    if (q && typeof q === 'object' && 'ar' in q) {
+      return (q.ar as string).replace('؟', '');
+    }
+  }
+  return id; // إذا لم يجد شيئاً يعيد الـ id كـ fallback
+};
+
+  const rows = filtered.map((f) => {
+    // تجميع الأسباب بنصوص عربية واضحة بدلاً من التاقات
+    const allReasons = Object.entries(f.answers || {})
+      .map(([key, data]: [string, any]) => {
+        if (typeof data === 'object' && data.reasons && data.reasons.length > 0) {
+          const questionLabel = getQuestionText(key); // تحويل الـ ID لاسم عربي
+          const reasonsList = data.reasons.join(' - ');
+          const otherText = data.other ? ` (أخرى: ${data.other})` : '';
+          return `${questionLabel}: [${reasonsList}${otherText}]`;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join(' | '); // الفاصل بين كل سؤال وسؤال
+
+    return [
       f.departmentName,
       f.overallRating,
       `"${f.comment || ''}"`,
+      `"${allReasons}"`,
       new Date(f.createdAt).toLocaleDateString('ar-SA'),
-    ])
-    const csv = [headers, ...rows].map((r) => r.join(',')).join('\n')
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'feedback-export.csv'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+    ];
+  });
+
+  const csv = [headers, ...rows].map((r) => r.join(',')).join('\n')
+  // نستخدم \ufeff لضمان أن الإكسل يفتح اللغة العربية بدون رموز غريبة
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `تقرير-تقييمات-هلا-${new Date().toLocaleDateString('ar-SA')}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
 
   if (isLoading) return <div className="p-10 text-center font-bold">جاري تحميل تقييمات أسواق هلا...</div>
 
@@ -285,15 +369,27 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((entry) => (
-                <tr key={entry.id} className="text-xs hover:bg-secondary/20">
-                  <td className="px-5 py-3 font-bold">{entry.departmentName}</td>
-                  <td className="px-5 py-3"><RatingBadge rating={entry.overallRating} /></td>
-                  <td className="px-5 py-3 text-muted-foreground">{entry.comment || '—'}</td>
-                  <td className="px-5 py-3">{new Date(entry.createdAt).toLocaleDateString('ar-SA')}</td>
-                </tr>
-              ))}
-            </tbody>
+  {filtered.map((entry) => (
+    <tr key={entry.id} className="text-xs hover:bg-secondary/20">
+      <td className="px-5 py-3 font-bold">
+        {entry.departmentName}
+      </td>
+      <td className="px-5 py-3">
+        <RatingBadge rating={entry.overallRating} />
+      </td>
+      <td className="px-5 py-3">
+        {/* كل شيء يخص التعليق والأسباب يجب أن يكون داخل هذه الـ td */}
+        <div className="flex flex-col gap-1">
+          <span className="text-muted-foreground">{entry.comment || '—'}</span>
+          <ReasonsList answers={entry.answers} />
+        </div>
+      </td>
+      <td className="px-5 py-3">
+        {new Date(entry.createdAt).toLocaleDateString('ar-SA')}
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
       </div>

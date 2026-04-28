@@ -84,10 +84,17 @@ function SurveyContent() {
     setIsSubmitting(true);
 
     try {
-      const scores = Object.values(answers);
-      const averageRating = scores.length
-        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-        : 0;
+      // استخراج قيم التقييم فقط من الإجابات (سواء كانت رقماً أو كائناً يحتوي على أسباب)
+const scores = Object.values(answers).map((ans: any) => {
+  if (typeof ans === 'object' && ans !== null) {
+    return ans.rating; // إذا كان تقييم منخفض (مع أسباب)، نأخذ الرقم فقط للحساب
+  }
+  return typeof ans === 'number' ? ans : 0; // إذا كان تقييم عالي، نأخذ الرقم مباشرة
+});
+
+const averageRating = scores.length
+  ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+  : 0;
 
       const response = await fetch('/api/feedback', {
         method: 'POST',
@@ -142,7 +149,7 @@ function SurveyContent() {
     </div>
   </div>
 
-  {/* 2. اللوجو - في العمود الأوسط (منتصف الشاشة تماماً) */}
+  {/* 2. اللوجو - في العمود الأوسط (منتصف الشاشة تماماً)
   <div className="flex justify-center">
     <Image 
       src="/E33.png" 
@@ -152,105 +159,102 @@ function SurveyContent() {
       priority
       className="object-contain hover:scale-105 transition-transform duration-300"
     />
-  </div>
+  </div> */}
 
   {/* 3. عمود فارغ في اليمين للموازنة (لضمان بقاء اللوجو في النص) */}
   <div className="w-full"></div>
 </header>
 
-      {/* Progress bar */}
-      {step !== 'welcome' && step !== 'success' && (
-        <div className="w-full max-w-lg px-6 mt-2">
-          <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.4 }}
-            />
-          </div>
+    {/* ─── Instagram Stories Style Progress Bar ─── */}
+{step !== 'welcome' && step !== 'success' && department && (
+  <div className="w-full max-w-lg px-2 pt-3 pb-2 flex items-center justify-center gap-1.5 z-50">
+    {department.questions.map((_, index) => {
+      // حساب حالة كل بار: هل اكتمل؟ هل هو الحالي؟ أم مستقبلي؟
+      const isCompleted = index < currentQuestion;
+      const isCurrent = index === currentQuestion;
+      
+      return (
+        <div 
+          key={index} 
+          className="flex-1 h-1 bg-gray-200/60 rounded-full overflow-hidden relative"
+        >
+          {/* البار الخلفي الرمادي الثابت (يمثل التقدم غير المكتمل) */}
+          
+          {/* البار الأخضر المتحرك (يمثل التقدم المكتمل) */}
+          <motion.div
+            className="absolute inset-0 bg-primary rounded-full"
+            initial={{ width: isCompleted ? "100%" : "0%" }}
+            animate={{ 
+              width: isCompleted ? "100%" : isCurrent ? "100%" : "0%" 
+            }}
+            transition={{ 
+              // أنيميشن سريع للبارات المكتملة، وبطيء (تعبئة) للبار الحالي
+              duration: isCurrent ? 0.5 : 0.2, 
+              ease: "easeInOut" 
+            }}
+          />
         </div>
-      )}
-
+      );
+    })}
+  </div>
+)}
       <main className="flex-1 flex flex-col items-center justify-start px-4 py-6 max-w-lg mx-auto w-full gap-4">
         <AnimatePresence mode="wait">
-          {/* ─── Welcome Step ─── */}
-          {step === 'welcome' && department && (
-            <motion.div
-              key="welcome"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -24 }}
-              className="w-full flex flex-col items-center gap-6"
-            >
-              {/* 2. تصغير الصورة (w-5/6) لتكون أصغر قليلاً من السابق */}
-              <div className="w-5/6 rounded-2xl overflow-hidden relative aspect-video shadow-md">
-                <Image
-                  src={department ? departmentImages[department.id] : '/hala-store.jpg'}
-                  alt="Hala Markets Store"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-4 right-4 text-white text-right">
-                  <p className="font-bold text-lg text-balance">
-                    {isRtl ? 'استبيان رضا العملاء' : 'Customer Satisfaction Survey'}
-                  </p>
-                  <p className="text-sm text-white/80 mt-1 flex items-center gap-2 justify-end">
-                    <span>{department.emoji}</span>
-                    <span>{isRtl ? department.nameAr : department.nameEn}</span>
-                  </p>
-                </div>
-              </div>
+{/* ─── Welcome Step ─── */}
+{step === 'welcome' && department && (
+  <motion.div
+    key="welcome"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="w-full flex flex-col items-center justify-center gap-10 pt-20"
+  >
+    {/* 1. اللوجو */}
+    <motion.div className="relative w-64 h-32">
+      <Image 
+        src="/E33.png" 
+        alt="Hala Markets"
+        fill
+        priority
+        className="object-contain"
+      />
+    </motion.div>
 
-              {/* Welcome text */}
-              <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold text-foreground text-balance">
-                  {isRtl ? 'أهلاً وسهلاً بك' : 'Welcome!'}
-                </h1>
-                <p className="text-muted-foreground text-sm leading-relaxed text-balance px-4">
-                  {isRtl
-                    ? 'رأيك يهمنا ويساعدنا على تقديم أفضل تجربة لك في كل زيارة'
-                    : 'Your feedback helps us provide the best experience on every visit'}
-                </p>
-              </div>
+    {/* 2. النص الترحيبي */}
+    <div className="text-center space-y-4">
+      <h1 className="text-4xl font-extrabold text-foreground">
+        {isRtl ? 'أهلاً وسهلاً بك' : 'Welcome!'}
+      </h1>
+      <p className="text-muted-foreground text-lg max-w-[280px] mx-auto leading-relaxed">
+        {isRtl
+          ? 'نسعد بخدمتكم دائماً في أسواق هلا، رأيك يهمنا لنرتقي بخدمتكم'
+          : 'We are happy to serve you at Hala Markets, your feedback helps us improve'}
+      </p>
+    </div>
 
-              {/* Department card */}
-              <div className="w-full bg-primary/5 border border-primary/20 rounded-2xl p-4 flex items-center gap-3">
-                <span className="text-4xl">{department.emoji}</span>
-                <div className={isRtl ? 'text-right' : 'text-left'}>
-                  <p className="font-bold text-foreground text-sm">
-                    {isRtl ? `تقييم قسم ${department.nameAr}` : `${department.nameEn} Department Review`}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {isRtl ? `${department.questions.length} أسئلة` : `${department.questions.length} questions`}
-                  </p>
-                </div>
-              </div>
-
-              {/* 3. ضبط حجم الزر (py-3.5) ليكون أصغر قليلاً وأكثر تناسقاً */}
-              <button
-  onClick={() => {
-    setStep('questions')
-    setCurrentQuestion(0)
-    setAnswers({})
-  }}
-  className="w-[85%] bg-primary text-primary-foreground rounded-2xl h-16 font-bold text-lg flex items-center justify-center gap-3 hover:bg-primary/90 active:scale-[0.97] transition-all shadow-lg shadow-primary/20"
->
-  {isRtl ? (
-    <>
-      <span>متابعة</span>
-      <ArrowLeft className="w-5 h-5" /> {/* السهم صار بعد الكلمة في العربي */}
-    </>
-  ) : (
-    <>
-      <span>Continue</span>
-      <ArrowRight className="w-5 h-5" />
-    </>
-  )}
-</button>
-            </motion.div>
-          )}
+    {/* 3. الزر */}
+    <button
+      onClick={() => {
+        setStep('questions')
+        setCurrentQuestion(0)
+        setAnswers({})
+      }}
+      className="w-full max-w-[280px] bg-primary text-primary-foreground rounded-2xl h-16 font-bold text-xl flex items-center justify-center gap-3 hover:bg-primary/90 active:scale-[0.95] transition-all shadow-xl shadow-primary/20 mt-10"
+    >
+      {isRtl ? (
+        <>
+          <span>ابدأ التقييم</span>
+          <ArrowLeft className="w-6 h-6" />
+        </>
+      ) : (
+        <>
+          <span>Start Survey</span>
+          <ArrowRight className="w-6 h-6" />
+        </>
+      )}
+    </button>
+  </motion.div>
+)}
 
           {/* خطوة الأسئلة */}
           {step === 'questions' && department && (
