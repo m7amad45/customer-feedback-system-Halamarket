@@ -1,14 +1,23 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { StarRating } from './star-rating'
-import { Question } from '@/lib/feedback-data'
-import { cn } from '@/lib/utils'
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { StarRating } from "./star-rating";
+import { Question } from "@/lib/feedback-data";
+import { cn } from "@/lib/utils";
 import {
-  Leaf, Star, User, SparklesIcon as Sparkles, CheckCircle2, Tag, Zap,
-  ListOrdered, Calendar, Thermometer, Wind,
-} from 'lucide-react'
+  Leaf,
+  Star,
+  User,
+  SparklesIcon as Sparkles,
+  CheckCircle2,
+  Tag,
+  Zap,
+  ListOrdered,
+  Calendar,
+  Thermometer,
+  Wind,
+} from "lucide-react";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   bread: <Star className="w-5 h-5" />,
@@ -23,15 +32,16 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   calendar: <Calendar className="w-5 h-5" />,
   thermometer: <Thermometer className="w-5 h-5" />,
   wind: <Wind className="w-5 h-5" />,
-}
+};
 
 interface QuestionCardProps {
-  question: Question
-  questionIndex: number
-  totalQuestions: number
-  value: any // غيّرناها لتقبل object أو number
-  onChange: (payload: any) => void
-  language?: 'ar' | 'en'
+  question: Question;
+  questionIndex: number;
+  totalQuestions: number;
+  value: any; // غيّرناها لتقبل object أو number
+  onChange: (payload: any) => void;
+  language?: "ar" | "en";
+  minimal?: boolean; //
 }
 
 export function QuestionCard({
@@ -40,11 +50,14 @@ export function QuestionCard({
   totalQuestions,
   value,
   onChange,
-  language = 'ar',
+  language = "ar",
+  minimal = false, // استلم الخاصية هنا وضع قيمتها الافتراضية false
 }: QuestionCardProps) {
   // استخراج التقييم الفعلي سواء كان القيمة رقماً أو كائناً
-  const ratingValue = typeof value === 'object' ? value.rating : value;
-  const [selectedReasons, setSelectedReasons] = useState<string[]>(value?.reasons || []);
+  const ratingValue = typeof value === "object" ? value.rating : value;
+  const [selectedReasons, setSelectedReasons] = useState<string[]>(
+    value?.reasons || [],
+  );
   const [otherText, setOtherText] = useState(value?.other || "");
 
   // تصقير الـ State عند الانتقال لسؤال جديد
@@ -61,7 +74,11 @@ export function QuestionCard({
       onChange(newRating);
     } else {
       // إذا التقييم منخفض، نرسل كائن يحتوي الأسباب الحالية
-      onChange({ rating: newRating, reasons: selectedReasons, other: otherText });
+      onChange({
+        rating: newRating,
+        reasons: selectedReasons,
+        other: otherText,
+      });
     }
   };
 
@@ -77,45 +94,43 @@ export function QuestionCard({
     <AnimatePresence mode="wait">
       <motion.div
         key={question.id}
-        initial={{ opacity: 0, x: language === 'ar' ? -40 : 40 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: language === 'ar' ? 40 : -40 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="bg-card rounded-2xl shadow-sm border border-border p-6 flex flex-col gap-5"
+        // تعديل الـ className ليتأثر بخاصية minimal
+        className={cn(
+          "flex flex-col gap-5 transition-all duration-300",
+          minimal
+            ? "bg-transparent border-none p-0 shadow-none items-center" // التنسيق الجديد بدون كارد
+            : "bg-card rounded-2xl shadow-sm border border-border p-6", // التنسيق القديم بالكارد
+        )}
       >
-        {/* Question header */}
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-            {ICON_MAP[question.icon] ?? <Star className="w-5 h-5" />}
+        {/* إذا كان minimal مفعل، قد ترغب في إخفاء الهيدر لأنه موجود بالفعل في الصفحة الرئيسية */}
+        {!minimal && (
+          <div className="flex items-start gap-3">
+            {/* ... كود الهيدر القديم ... */}
           </div>
-          <div className="flex-1" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-            <p className="text-xs text-muted-foreground mb-1">
-              {language === 'ar'
-                ? `السؤال ${questionIndex + 1} من ${totalQuestions}`
-                : `Question ${questionIndex + 1} of ${totalQuestions}`}
-            </p>
-            <p className="font-semibold text-foreground leading-relaxed text-sm md:text-base">
-              {language === 'ar' ? question.ar : question.en}
-            </p>
-          </div>
-        </div>
+        )}
 
         {/* Rating */}
-        <StarRating value={ratingValue} onChange={handleRatingChange} language={language} />
+        <StarRating
+          value={ratingValue}
+          onChange={handleRatingChange}
+          language={language}
+        />
 
         {/* ─── Low Rating Options (The New Part) ─── */}
         <AnimatePresence>
           {ratingValue > 0 && ratingValue <= 2 && question.lowRatingOptions && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="pt-4 border-t border-dashed border-border"
             >
               <p className="text-xs font-bold text-destructive mb-3 text-center">
-                {language === 'ar' ? 'يؤسفنا ذلك، ما هي المشكلة؟' : 'What went wrong?'}
+                {language === "ar"
+                  ? "يؤسفنا ذلك، ما هي المشكلة؟"
+                  : "What went wrong?"}
               </p>
-              
+
               <div className="flex flex-wrap gap-2 justify-center">
                 {question.lowRatingOptions.map((option) => (
                   <button
@@ -125,7 +140,7 @@ export function QuestionCard({
                       "px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all border",
                       selectedReasons.includes(option)
                         ? "bg-destructive text-white border-destructive shadow-sm"
-                        : "bg-secondary/50 text-muted-foreground border-transparent hover:border-destructive/30"
+                        : "bg-secondary/50 text-muted-foreground border-transparent hover:border-destructive/30",
                     )}
                   >
                     {option}
@@ -133,17 +148,23 @@ export function QuestionCard({
                 ))}
               </div>
 
-              {selectedReasons.includes('أخرى') && (
+              {selectedReasons.includes("أخرى") && (
                 <motion.input
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   type="text"
-                  placeholder={language === 'ar' ? "وضح لنا أكثر..." : "Tell us more..."}
+                  placeholder={
+                    language === "ar" ? "وضح لنا أكثر..." : "Tell us more..."
+                  }
                   className="w-full mt-3 p-3 bg-secondary/30 border border-border rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-destructive/30"
                   value={otherText}
                   onChange={(e) => {
                     setOtherText(e.target.value);
-                    onChange({ rating: ratingValue, reasons: selectedReasons, other: e.target.value });
+                    onChange({
+                      rating: ratingValue,
+                      reasons: selectedReasons,
+                      other: e.target.value,
+                    });
                   }}
                 />
               )}
@@ -152,5 +173,5 @@ export function QuestionCard({
         </AnimatePresence>
       </motion.div>
     </AnimatePresence>
-  )
+  );
 }
