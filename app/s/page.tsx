@@ -118,39 +118,37 @@ function SurveyContent() {
   }
 
   return (
-    /* 1. ضبط الطول الكامل ومنع السكرول الخارجي */
+    /* 1. استخدام dvh لضمان المقاس الصحيح على الجوال ومنع السكرول نهائياً */
     <div
-      className="h-screen bg-background flex flex-col overflow-hidden relative"
+      className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden relative touch-none"
       dir={dir}
     >
-      {/* Header */}
+      {/* Header - تقليل البادينج */}
       <header
-        className="w-full grid grid-cols-3 items-center px-6 py-4 z-10"
+        className="w-full flex items-center justify-between px-6 py-3 z-10"
         dir="ltr"
       >
-        <div className="flex justify-start items-center">
-          <div className="flex items-center gap-1 bg-secondary rounded-full p-1 shadow-sm border border-border/50">
-            {(["ar", "en"] as Language[]).map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={cn(
-                  "px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-300",
-                  lang === l
-                    ? "bg-primary text-primary-foreground shadow-md"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {l === "ar" ? "عربي" : "EN"}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-1 bg-secondary rounded-full p-1 shadow-sm border border-border/50">
+          {(["ar", "en"] as Language[]).map((l) => (
+            <button
+              key={l}
+              onClick={() => setLang(l)}
+              className={cn(
+                "px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-300",
+                lang === l
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {l === "ar" ? "عربي" : "EN"}
+            </button>
+          ))}
         </div>
       </header>
 
-      {/* Progress Bar */}
+      {/* Progress Bar - تقليل المسافات */}
       {step !== "welcome" && step !== "success" && department && (
-        <div className="w-full max-w-lg mx-auto px-6 pt-2 pb-2 flex items-center justify-center gap-1.5 z-50">
+        <div className="w-full max-w-lg mx-auto px-6 py-1 flex items-center justify-center gap-1.5 z-50">
           {department.questions.map((_, index) => (
             <div
               key={index}
@@ -167,8 +165,8 @@ function SurveyContent() {
         </div>
       )}
 
-      {/* 2. منطقة المحتوى: استخدام justify-between لدفع الأزرار للقاع */}
-      <main className="flex-1 flex flex-col items-center justify-between px-4 py-2 max-w-lg mx-auto w-full overflow-y-auto">
+      {/* 2. Main Container: تم ضغط المسافات (py-2) وتثبيت العناصر */}
+      <main className="flex-1 flex flex-col items-center justify-between px-4 py-2 max-w-lg mx-auto w-full relative">
         <AnimatePresence mode="wait">
           {/* Welcome Step */}
           {step === "welcome" && (
@@ -177,9 +175,9 @@ function SurveyContent() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full flex flex-col items-center justify-center gap-8 py-10"
+              className="w-full h-full flex flex-col items-center justify-center gap-6"
             >
-              <div className="relative w-56 h-28">
+              <div className="relative w-52 h-24">
                 <Image
                   src="/E33.png"
                   alt="Hala Markets"
@@ -188,11 +186,11 @@ function SurveyContent() {
                   className="object-contain"
                 />
               </div>
-              <div className="text-center space-y-4">
-                <h1 className="text-3xl font-extrabold text-foreground">
+              <div className="text-center space-y-2">
+                <h1 className="text-2xl font-extrabold text-foreground">
                   {isRtl ? "أهلاً وسهلاً بك" : "Welcome!"}
                 </h1>
-                <p className="text-muted-foreground text-base max-w-[260px] mx-auto italic">
+                <p className="text-muted-foreground text-sm max-w-[240px] mx-auto italic">
                   {isRtl
                     ? "نسعد بخدمتكم دائماً في أسواق هلا"
                     : "We are happy to serve you at Hala Markets"}
@@ -221,7 +219,7 @@ function SurveyContent() {
             </motion.div>
           )}
 
-          {/* Questions Step */}
+          {/* Questions Step - ضغط المسافات الرأسية جداً */}
           {step === "questions" && department && (
             <motion.div
               key={`q-${currentQuestion}`}
@@ -230,20 +228,22 @@ function SurveyContent() {
               exit={{ opacity: 0, x: isRtl ? 30 : -30 }}
               className="w-full h-full flex flex-col items-center justify-between"
             >
-              {/* الجزء العلوي: السؤال والإيموجي */}
-              <div className="w-full flex flex-col items-center gap-2">
-                <div className="text-center space-y-1">
-                  <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80">
+              {/* الجزء العلوي - مضغوط */}
+              <div className="w-full flex flex-col items-center gap-1">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80 mb-1">
                     <span>{department.emoji}</span>
                     <span className="text-[10px] uppercase tracking-widest">
                       {isRtl ? department.nameAr : department.nameEn}
                     </span>
                   </div>
-                  <h2 className="text-lg md:text-xl font-black text-foreground leading-tight">
+                  <h2 className="text-lg font-black text-foreground leading-tight px-2">
                     {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
                   </h2>
                 </div>
-                <div className="h-20 flex items-center justify-center">
+
+                {/* منطقة الإيموجي - صغرنا الارتفاع لتوفير مساحة */}
+                <div className="h-16 flex items-center justify-center">
                   <AnimatePresence mode="wait">
                     {currentRating > 0 && ratingEmoji && (
                       <motion.div
@@ -252,7 +252,7 @@ function SurveyContent() {
                         animate={{ scale: 1 }}
                         className="flex flex-col items-center"
                       >
-                        <span className="text-6xl mb-1">
+                        <span className="text-5xl mb-1">
                           {ratingEmoji.emoji}
                         </span>
                         <span
@@ -267,8 +267,8 @@ function SurveyContent() {
                 </div>
               </div>
 
-              {/* المنتصف: النجوم والأسباب */}
-              <div className="w-full flex-1 flex items-center justify-center overflow-y-auto px-1 py-2">
+              {/* الجزء الأوسط - النجوم والأسباب - مرن جداً */}
+              <div className="w-full flex-1 flex items-center justify-center py-1">
                 <QuestionCard
                   question={department.questions[currentQuestion]}
                   questionIndex={currentQuestion}
@@ -282,15 +282,15 @@ function SurveyContent() {
                 />
               </div>
 
-              {/* القاع: الأزرار */}
-              <div className="w-full flex flex-col-reverse items-center gap-2 pt-2 pb-4">
+              {/* الجزء السفلي - الأزرار ملتصقة بالقاع */}
+              <div className="w-full flex flex-col-reverse items-center gap-1 pb-4">
                 <button
                   onClick={handleNext}
                   disabled={!answers[department.questions[currentQuestion].id]}
                   className={cn(
-                    "w-full h-12 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all",
+                    "w-full h-12 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg",
                     answers[department.questions[currentQuestion].id]
-                      ? "bg-primary text-primary-foreground shadow-primary/20"
+                      ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground opacity-50",
                   )}
                 >
@@ -310,7 +310,7 @@ function SurveyContent() {
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBack}
-                  className="py-1 text-muted-foreground hover:text-foreground text-[11px] font-bold bg-transparent border-none"
+                  className="py-1 text-muted-foreground text-[11px] font-bold"
                 >
                   {isRtl ? "السابق" : "Back"}
                 </motion.button>
@@ -322,24 +322,24 @@ function SurveyContent() {
           {step === "comment" && (
             <motion.div
               key="comment"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className="w-full h-full flex flex-col items-center justify-between pb-4"
             >
-              <div className="w-full flex flex-col gap-6 pt-10 text-center">
-                <h2 className="text-2xl font-black">
+              <div className="w-full flex flex-col gap-4 pt-4 text-center">
+                <h2 className="text-xl font-black">
                   {isRtl ? "هل تريد إضافة تعليق؟" : "Any comments?"}
                 </h2>
                 <textarea
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  className="w-full bg-card border border-border rounded-2xl p-4 h-40 focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                  className="w-full bg-card border border-border rounded-2xl p-4 h-32 focus:ring-2 focus:ring-primary/20 focus:outline-none"
                   placeholder={
                     isRtl ? "اكتب ملاحظاتك هنا..." : "Your feedback here..."
                   }
                 />
               </div>
-              <div className="w-full flex flex-col-reverse items-center gap-2">
+              <div className="w-full flex flex-col-reverse items-center gap-1">
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
@@ -353,7 +353,7 @@ function SurveyContent() {
                 </button>
                 <button
                   onClick={handleBack}
-                  className="py-2 text-muted-foreground text-xs font-bold bg-transparent"
+                  className="py-2 text-muted-foreground text-xs font-bold"
                 >
                   {isRtl ? "رجوع للأسئلة" : "Back to questions"}
                 </button>
@@ -365,13 +365,13 @@ function SurveyContent() {
           {step === "success" && (
             <motion.div
               key="success"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full h-full flex flex-col items-center justify-center gap-10 py-10 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="w-full h-full flex flex-col items-center justify-center gap-8 py-10 text-center"
             >
               <div
                 onClick={resetToWelcome}
-                className="relative w-64 h-32 cursor-pointer active:scale-95 transition-transform"
+                className="relative w-52 h-24 cursor-pointer"
               >
                 <Image
                   src="/E33.png"
@@ -381,25 +381,25 @@ function SurveyContent() {
                   className="object-contain"
                 />
               </div>
-              <div className="space-y-6 px-6">
-                <h2 className="text-4xl font-extrabold text-foreground flex items-center justify-center gap-3">
+              <div className="space-y-4 px-6">
+                <h2 className="text-3xl font-extrabold text-foreground flex items-center justify-center gap-2">
                   {isRtl ? "شكراً لك!" : "Thank you!"}
                   <motion.span
                     animate={{ rotate: [0, 15, -15, 0] }}
                     transition={{ repeat: Infinity, duration: 2 }}
-                    className="inline-block origin-bottom"
+                    className="inline-block"
                   >
                     🎉
                   </motion.span>
                 </h2>
-                <p className="text-muted-foreground text-lg max-w-[280px] mx-auto italic">
+                <p className="text-muted-foreground text-base max-w-[280px] mx-auto italic leading-relaxed">
                   {isRtl
-                    ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا."
+                    ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا ورأيك محل اهتمامنا."
                     : "Your feedback has been submitted successfully."}
                 </p>
                 <button
                   onClick={resetToWelcome}
-                  className="text-primary font-black text-sm hover:underline underline-offset-8"
+                  className="text-primary font-black text-sm hover:underline underline-offset-8 mt-4"
                 >
                   {isRtl ? "إرسال تقييم لقسم آخر" : "Rate another department"}
                 </button>
