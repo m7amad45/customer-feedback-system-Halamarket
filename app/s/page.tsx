@@ -118,13 +118,14 @@ function SurveyContent() {
   }
 
   return (
+    /* 1. ضبط الطول الكامل ومنع السكرول الخارجي */
     <div
-      className="min-h-screen bg-background flex flex-col items-center overflow-x-hidden"
+      className="h-screen bg-background flex flex-col overflow-hidden relative"
       dir={dir}
     >
-      {/* Header - زر اللغة فقط */}
+      {/* Header */}
       <header
-        className="w-full grid grid-cols-3 items-center px-6 py-6 z-10"
+        className="w-full grid grid-cols-3 items-center px-6 py-4 z-10"
         dir="ltr"
       >
         <div className="flex justify-start items-center">
@@ -149,7 +150,7 @@ function SurveyContent() {
 
       {/* Progress Bar */}
       {step !== "welcome" && step !== "success" && department && (
-        <div className="w-full max-w-lg px-6 pt-3 pb-2 flex items-center justify-center gap-1.5 z-50">
+        <div className="w-full max-w-lg mx-auto px-6 pt-2 pb-2 flex items-center justify-center gap-1.5 z-50">
           {department.questions.map((_, index) => (
             <div
               key={index}
@@ -166,18 +167,19 @@ function SurveyContent() {
         </div>
       )}
 
-      <main className="flex-1 flex flex-col items-center justify-start px-4 py-6 max-w-lg mx-auto w-full gap-4 min-h-[85vh]">
+      {/* 2. منطقة المحتوى: استخدام justify-between لدفع الأزرار للقاع */}
+      <main className="flex-1 flex flex-col items-center justify-between px-4 py-2 max-w-lg mx-auto w-full overflow-y-auto">
         <AnimatePresence mode="wait">
           {/* Welcome Step */}
           {step === "welcome" && (
             <motion.div
               key="welcome"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="w-full flex flex-col items-center justify-center gap-10 pt-20"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="w-full h-full flex flex-col items-center justify-center gap-8 py-10"
             >
-              <div className="relative w-64 h-32">
+              <div className="relative w-56 h-28">
                 <Image
                   src="/E33.png"
                   alt="Hala Markets"
@@ -187,10 +189,10 @@ function SurveyContent() {
                 />
               </div>
               <div className="text-center space-y-4">
-                <h1 className="text-4xl font-extrabold text-foreground">
+                <h1 className="text-3xl font-extrabold text-foreground">
                   {isRtl ? "أهلاً وسهلاً بك" : "Welcome!"}
                 </h1>
-                <p className="text-muted-foreground text-lg max-w-[280px] mx-auto leading-relaxed italic">
+                <p className="text-muted-foreground text-base max-w-[260px] mx-auto italic">
                   {isRtl
                     ? "نسعد بخدمتكم دائماً في أسواق هلا"
                     : "We are happy to serve you at Hala Markets"}
@@ -202,7 +204,7 @@ function SurveyContent() {
                   setCurrentQuestion(0);
                   setAnswers({});
                 }}
-                className="w-full max-w-[280px] bg-primary text-primary-foreground rounded-2xl h-16 font-bold text-xl flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform mt-10"
+                className="w-full max-w-[280px] bg-primary text-primary-foreground rounded-2xl h-14 font-bold text-lg flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform"
               >
                 {isRtl ? (
                   <>
@@ -226,41 +228,47 @@ function SurveyContent() {
               initial={{ opacity: 0, x: isRtl ? -30 : 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRtl ? 30 : -30 }}
-              className="w-full flex-1 flex flex-col items-center gap-6 h-full"
+              className="w-full h-full flex flex-col items-center justify-between"
             >
-              <div className="text-center space-y-3 px-4 pt-4">
-                <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80">
-                  <span>{department.emoji}</span>
-                  <span className="text-xs uppercase tracking-widest">
-                    {isRtl ? department.nameAr : department.nameEn}
-                  </span>
+              {/* الجزء العلوي: السؤال والإيموجي */}
+              <div className="w-full flex flex-col items-center gap-2">
+                <div className="text-center space-y-1">
+                  <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80">
+                    <span>{department.emoji}</span>
+                    <span className="text-[10px] uppercase tracking-widest">
+                      {isRtl ? department.nameAr : department.nameEn}
+                    </span>
+                  </div>
+                  <h2 className="text-lg md:text-xl font-black text-foreground leading-tight">
+                    {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
+                  </h2>
                 </div>
-                <h2 className="text-xl md:text-2xl font-black text-foreground leading-tight">
-                  {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
-                </h2>
-              </div>
-              <div className="h-24 flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                  {currentRating > 0 && ratingEmoji && (
-                    <motion.div
-                      key={ratingEmoji.score}
-                      initial={{ scale: 0, rotate: -20 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 20 }}
-                      className="flex flex-col items-center"
-                    >
-                      <span className="text-7xl mb-2">{ratingEmoji.emoji}</span>
-                      <span
-                        className="text-xs font-bold"
-                        style={{ color: ratingEmoji.color }}
+                <div className="h-20 flex items-center justify-center">
+                  <AnimatePresence mode="wait">
+                    {currentRating > 0 && ratingEmoji && (
+                      <motion.div
+                        key={ratingEmoji.score}
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="flex flex-col items-center"
                       >
-                        {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        <span className="text-6xl mb-1">
+                          {ratingEmoji.emoji}
+                        </span>
+                        <span
+                          className="text-[10px] font-bold"
+                          style={{ color: ratingEmoji.color }}
+                        >
+                          {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
+                        </span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
-              <div className="w-full flex justify-center py-2">
+
+              {/* المنتصف: النجوم والأسباب */}
+              <div className="w-full flex-1 flex items-center justify-center overflow-y-auto px-1 py-2">
                 <QuestionCard
                   question={department.questions[currentQuestion]}
                   questionIndex={currentQuestion}
@@ -273,12 +281,14 @@ function SurveyContent() {
                   minimal
                 />
               </div>
-              <div className="w-full mt-auto flex flex-col-reverse items-center gap-3 px-4 pb-8">
+
+              {/* القاع: الأزرار */}
+              <div className="w-full flex flex-col-reverse items-center gap-2 pt-2 pb-4">
                 <button
                   onClick={handleNext}
                   disabled={!answers[department.questions[currentQuestion].id]}
                   className={cn(
-                    "w-full h-14 rounded-xl font-black text-base flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]",
+                    "w-full h-12 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all",
                     answers[department.questions[currentQuestion].id]
                       ? "bg-primary text-primary-foreground shadow-primary/20"
                       : "bg-muted text-muted-foreground opacity-50",
@@ -292,15 +302,15 @@ function SurveyContent() {
                       ? "تعليق"
                       : "Comment"}
                   {isRtl ? (
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeft className="w-4 h-4" />
                   ) : (
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4" />
                   )}
                 </button>
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBack}
-                  className="w-full py-2 text-muted-foreground hover:text-foreground text-xs font-bold transition-colors bg-transparent border-none focus:outline-none"
+                  className="py-1 text-muted-foreground hover:text-foreground text-[11px] font-bold bg-transparent border-none"
                 >
                   {isRtl ? "السابق" : "Back"}
                 </motion.button>
@@ -314,27 +324,22 @@ function SurveyContent() {
               key="comment"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full flex-1 flex flex-col gap-6 pt-10 h-full"
+              className="w-full h-full flex flex-col items-center justify-between pb-4"
             >
-              <div className="text-center">
+              <div className="w-full flex flex-col gap-6 pt-10 text-center">
                 <h2 className="text-2xl font-black">
                   {isRtl ? "هل تريد إضافة تعليق؟" : "Any comments?"}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-2">
-                  {isRtl
-                    ? "رأيك يساعدنا في التحسن دائماً"
-                    : "Your feedback helps us improve"}
-                </p>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  className="w-full bg-card border border-border rounded-2xl p-4 h-40 focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                  placeholder={
+                    isRtl ? "اكتب ملاحظاتك هنا..." : "Your feedback here..."
+                  }
+                />
               </div>
-              <textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                className="w-full bg-card border border-border rounded-2xl p-4 min-h-[180px] focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                placeholder={
-                  isRtl ? "اكتب ملاحظاتك هنا..." : "Your feedback here..."
-                }
-              />
-              <div className="w-full mt-auto flex flex-col-reverse items-center gap-3 px-4 pb-8">
+              <div className="w-full flex flex-col-reverse items-center gap-2">
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
@@ -348,7 +353,7 @@ function SurveyContent() {
                 </button>
                 <button
                   onClick={handleBack}
-                  className="w-full py-2 text-muted-foreground text-xs font-bold bg-transparent"
+                  className="py-2 text-muted-foreground text-xs font-bold bg-transparent"
                 >
                   {isRtl ? "رجوع للأسئلة" : "Back to questions"}
                 </button>
@@ -356,23 +361,17 @@ function SurveyContent() {
             </motion.div>
           )}
 
-          {/* Success Step - مطابقة تماماً لشاشة الترحيب */}
-          {/* Success Step - اللوجو مع الإيموجي المتحرك بجانب النص */}
-          {/* Success Step - اللوجو مع الإيموجي وتأثير اللمعان بجانب النص */}
-          {/* Success Step - مع إضافة مسافات متناسقة */}
+          {/* Success Step */}
           {step === "success" && (
             <motion.div
               key="success"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              // زدنا الـ gap الكلي هنا لتباعد العناصر الأساسية
-              className="w-full flex flex-col items-center justify-center gap-14 pt-20 text-center"
+              className="w-full h-full flex flex-col items-center justify-center gap-10 py-10 text-center"
             >
-              {/* 1. اللوجو الكبير مع مساحة سفلية */}
-              <motion.div
+              <div
                 onClick={resetToWelcome}
-                whileTap={{ scale: 0.95 }}
-                className="relative w-64 h-32 cursor-pointer mb-4"
+                className="relative w-64 h-32 cursor-pointer active:scale-95 transition-transform"
               >
                 <Image
                   src="/E33.png"
@@ -381,55 +380,29 @@ function SurveyContent() {
                   priority
                   className="object-contain"
                 />
-              </motion.div>
-
-              {/* 2. حاوية النص والإيموجي مع مسافات داخلية */}
-              <div className="text-center space-y-8 px-6">
-                <h2 className="text-4xl font-extrabold text-foreground flex items-center justify-center gap-4">
+              </div>
+              <div className="space-y-6 px-6">
+                <h2 className="text-4xl font-extrabold text-foreground flex items-center justify-center gap-3">
                   {isRtl ? "شكراً لك!" : "Thank you!"}
-
-                  {/* حاوية الإيموجي واللمعان */}
-                  <div className="relative inline-flex items-center justify-center ml-2">
-                    <motion.span
-                      initial={{ scale: 0, rotate: -20 }}
-                      animate={{ scale: 1.2, rotate: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 260,
-                        damping: 20,
-                        delay: 0.2,
-                      }}
-                      className="inline-block origin-bottom"
-                    >
-                      <motion.span
-                        animate={{ rotate: [0, 15, -15, 0] }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 2,
-                          ease: "easeInOut",
-                        }}
-                        className="inline-block"
-                      >
-                        🎉
-                      </motion.span>
-                    </motion.span>
-
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0], scale: [1, 1.5, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute -top-5 -right-5 text-2xl"
-                    >
-                      ✨
-                    </motion.span>
-                  </div>
+                  <motion.span
+                    animate={{ rotate: [0, 15, -15, 0] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="inline-block origin-bottom"
+                  >
+                    🎉
+                  </motion.span>
                 </h2>
-
-                {/* نص الوصف مع مسافة علوية كافية */}
-                <p className="text-muted-foreground text-lg max-w-[320px] mx-auto leading-relaxed italic pt-4">
+                <p className="text-muted-foreground text-lg max-w-[280px] mx-auto italic">
                   {isRtl
-                    ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا ورأيك محل اهتمامنا."
-                    : "Your feedback has been submitted successfully. We look forward to seeing you again."}
+                    ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا."
+                    : "Your feedback has been submitted successfully."}
                 </p>
+                <button
+                  onClick={resetToWelcome}
+                  className="text-primary font-black text-sm hover:underline underline-offset-8"
+                >
+                  {isRtl ? "إرسال تقييم لقسم آخر" : "Rate another department"}
+                </button>
               </div>
             </motion.div>
           )}
