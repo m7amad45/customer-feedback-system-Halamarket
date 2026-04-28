@@ -220,16 +220,17 @@ function SurveyContent() {
           )}
 
           {/* Questions Step - ضغط المسافات الرأسية جداً */}
+          {/* Questions Step - تنسيق مضغوط وذكي */}
           {step === "questions" && department && (
             <motion.div
               key={`q-${currentQuestion}`}
               initial={{ opacity: 0, x: isRtl ? -30 : 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRtl ? 30 : -30 }}
-              className="w-full h-full flex flex-col items-center justify-between"
+              className="w-full h-full flex flex-col items-center"
             >
-              {/* الجزء العلوي - مضغوط */}
-              <div className="w-full flex flex-col items-center gap-1">
+              {/* 1. القسم العلوي: السؤال (بمساحة ثابتة) */}
+              <div className="w-full flex flex-col items-center gap-1 pt-2">
                 <div className="text-center">
                   <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80 mb-1">
                     <span>{department.emoji}</span>
@@ -237,38 +238,40 @@ function SurveyContent() {
                       {isRtl ? department.nameAr : department.nameEn}
                     </span>
                   </div>
-                  <h2 className="text-lg font-black text-foreground leading-tight px-2">
+                  <h2 className="text-lg font-black text-foreground leading-tight px-4 min-h-[3rem] flex items-center justify-center">
                     {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
                   </h2>
                 </div>
-
-                {/* منطقة الإيموجي - صغرنا الارتفاع لتوفير مساحة */}
-                <div className="h-16 flex items-center justify-center">
-                  <AnimatePresence mode="wait">
-                    {currentRating > 0 && ratingEmoji && (
-                      <motion.div
-                        key={ratingEmoji.score}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="flex flex-col items-center"
-                      >
-                        <span className="text-5xl mb-1">
-                          {ratingEmoji.emoji}
-                        </span>
-                        <span
-                          className="text-[10px] font-bold"
-                          style={{ color: ratingEmoji.color }}
-                        >
-                          {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
-                        </span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
               </div>
 
-              {/* الجزء الأوسط - النجوم والأسباب - مرن جداً */}
-              <div className="w-full flex-1 flex items-center justify-center py-1">
+              {/* 2. القسم الأوسط: الإيموجي (متمركز في المنتصف بمرونة) */}
+              <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[140px]">
+                <AnimatePresence mode="wait">
+                  {currentRating > 0 && ratingEmoji ? (
+                    <motion.div
+                      key={ratingEmoji.score}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex flex-col items-center"
+                    >
+                      <span className="text-6xl md:text-7xl mb-2">
+                        {ratingEmoji.emoji}
+                      </span>
+                      <span
+                        className="text-xs font-bold px-3 py-1 rounded-full bg-secondary"
+                        style={{ color: ratingEmoji.color }}
+                      >
+                        {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
+                      </span>
+                    </motion.div>
+                  ) : (
+                    <div className="h-24" /> // مساحة محجوزة عند عدم الاختيار
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* 3. النجوم: قريبة من الإيموجي */}
+              <div className="w-full flex justify-center pb-6">
                 <QuestionCard
                   question={department.questions[currentQuestion]}
                   questionIndex={currentQuestion}
@@ -282,15 +285,15 @@ function SurveyContent() {
                 />
               </div>
 
-              {/* الجزء السفلي - الأزرار ملتصقة بالقاع */}
-              <div className="w-full flex flex-col-reverse items-center gap-1 pb-4">
+              {/* 4. الأزرار: مسافة بسيطة ومدروسة */}
+              <div className="w-full flex flex-col-reverse items-center gap-4 pb-6">
                 <button
                   onClick={handleNext}
                   disabled={!answers[department.questions[currentQuestion].id]}
                   className={cn(
-                    "w-full h-12 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg",
+                    "w-full h-12 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]",
                     answers[department.questions[currentQuestion].id]
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground shadow-primary/20"
                       : "bg-muted text-muted-foreground opacity-50",
                   )}
                 >
@@ -307,10 +310,11 @@ function SurveyContent() {
                     <ArrowRight className="w-4 h-4" />
                   )}
                 </button>
+
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBack}
-                  className="py-1 text-muted-foreground text-[11px] font-bold"
+                  className="py-1 text-muted-foreground hover:text-foreground text-[11px] font-bold"
                 >
                   {isRtl ? "السابق" : "Back"}
                 </motion.button>
