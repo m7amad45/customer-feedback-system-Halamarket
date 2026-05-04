@@ -177,7 +177,8 @@ function SurveyContent() {
       )}
 
       {/* 2. Main Container: تم ضغط المسافات (py-2) وتثبيت العناصر */}
-      <main className="flex-1 flex flex-col items-center justify-between px-4 py-2 max-w-lg mx-auto w-full relative">
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-6 max-w-lg mx-auto w-full relative min-h-0">
+        {" "}
         <AnimatePresence mode="wait">
           {/* Welcome Step */}
           {step === "welcome" && (
@@ -269,6 +270,8 @@ function SurveyContent() {
                           alt={isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
                           fill
                           className="object-contain"
+                          priority // هذه الخاصية تجعل الصورة تظهر فوراً عند التحميل
+                          quality={100} // لضمان جودة الصورة بدون ضغط زائد يؤخر المعالجة
                         />
                       </div>
                       <span
