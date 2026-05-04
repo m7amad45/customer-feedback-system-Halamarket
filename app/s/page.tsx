@@ -136,7 +136,7 @@ function SurveyContent() {
     >
       {/* Header - تقليل البادينج */}
       <header
-        className="w-full flex items-center justify-between px-6 py-3 z-60 sticky top-0 bg-background/80 backdrop-blur-md border-b border-border/50"
+        className="w-full flex items-center justify-between px-6 py-3 z-60 sticky top-0 bg-background/80 backdrop-blur-md"
         dir="ltr"
       >
         <div className="flex items-center gap-1 bg-secondary rounded-full p-1 shadow-sm border border-border/50">
@@ -245,7 +245,7 @@ function SurveyContent() {
                 className={cn(
                   "w-full flex flex-col items-center justify-center overflow-hidden transition-all duration-500 ease-in-out",
                   currentRating > 0
-                    ? "h-32 opacity-100 mt-2"
+                    ? "h-36 opacity-100 mt-4"
                     : "h-0 opacity-0 mt-0",
                 )}
               >
@@ -263,10 +263,20 @@ function SurveyContent() {
                       }}
                       className="flex flex-col items-center"
                     >
-                      <span className="text-6xl mb-2">{ratingEmoji.emoji}</span>
+                      <div className="relative w-24 h-24 mb-2">
+                        <Image
+                          src={ratingEmoji.image}
+                          alt={isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
                       <span
-                        className="text-xs font-bold px-3 py-1 rounded-full bg-secondary"
-                        style={{ color: ratingEmoji.color }}
+                        className="text-xs font-bold px-4 py-1.5 rounded-full bg-secondary leading-none flex items-center justify-center min-h-fit"
+                        style={{
+                          color: ratingEmoji.color,
+                          backgroundColor: `${ratingEmoji.color}15`, // إضافة شفافية 15% للون الخلفية
+                        }}
                       >
                         {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
                       </span>
@@ -296,7 +306,7 @@ function SurveyContent() {
               {/* 3. النجوم */}
               <motion.div
                 layout
-                className="w-full flex-1 flex items-start justify-center pt-6"
+                className="w-full flex-1 flex items-start justify-center pt-6 pb-6"
               >
                 <QuestionCard
                   question={department.questions[currentQuestion]}
