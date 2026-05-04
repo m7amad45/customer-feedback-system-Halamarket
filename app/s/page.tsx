@@ -186,7 +186,7 @@ function SurveyContent() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="w-full h-full flex flex-col items-center justify-center gap-6"
+              className="w-full flex-1 flex flex-col items-center justify-center gap-8 min-h-[70dvh]"
             >
               <div className="relative w-52 h-24">
                 <Image
