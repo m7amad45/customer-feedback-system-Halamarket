@@ -62,6 +62,17 @@ function SurveyContent() {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   }
 
+  // دالة جديدة تسمح بإلغاء الاختيار عند الضغط مرتين
+  function handleRatingToggle(questionId: string, rating: number) {
+    // إذا كان التقييم المختار حالياً هو نفسه الذي ضغطت عليه، نجعله 0 (إلغاء)
+    if (currentRating === rating) {
+      handleAnswer(questionId, 0);
+    } else {
+      // إذا كان مختلفاً، نحدث القيمة بشكل طبيعي
+      handleAnswer(questionId, rating);
+    }
+  }
+
   function handleNext() {
     if (!department) return;
     if (answers[department.questions[currentQuestion].id] === undefined) return;
@@ -120,12 +131,12 @@ function SurveyContent() {
   return (
     /* 1. استخدام dvh لضمان المقاس الصحيح على الجوال ومنع السكرول نهائياً */
     <div
-      className="h-[100dvh] w-full bg-background flex flex-col overflow-hidden relative touch-none"
+      className="min-h-dvh w-full bg-background flex flex-col overflow-y-auto relative pb-6"
       dir={dir}
     >
       {/* Header - تقليل البادينج */}
       <header
-        className="w-full flex items-center justify-between px-6 py-3 z-10"
+        className="w-full flex items-center justify-between px-6 py-3 z-60 sticky top-0 bg-background/80 backdrop-blur-md border-b border-border/50"
         dir="ltr"
       >
         <div className="flex items-center gap-1 bg-secondary rounded-full p-1 shadow-sm border border-border/50">
@@ -190,7 +201,7 @@ function SurveyContent() {
                 <h1 className="text-2xl font-extrabold text-foreground">
                   {isRtl ? "أهلاً وسهلاً بك" : "Welcome!"}
                 </h1>
-                <p className="text-muted-foreground text-sm max-w-[240px] mx-auto italic">
+                <p className="text-muted-foreground text-sm max-w-60 mx-auto italic">
                   {isRtl
                     ? "نسعد بخدمتكم دائماً في أسواق هلا"
                     : "We are happy to serve you at Hala Markets"}
@@ -202,7 +213,7 @@ function SurveyContent() {
                   setCurrentQuestion(0);
                   setAnswers({});
                 }}
-                className="w-full max-w-[280px] bg-primary text-primary-foreground rounded-2xl h-14 font-bold text-lg flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform"
+                className="w-full max-w-60 bg-primary text-primary-foreground rounded-2xl h-14 font-bold text-lg flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform"
               >
                 {isRtl ? (
                   <>
@@ -219,44 +230,40 @@ function SurveyContent() {
             </motion.div>
           )}
 
-          {/* Questions Step - ضغط المسافات الرأسية جداً */}
-          {/* Questions Step - تنسيق مضغوط وذكي */}
           {step === "questions" && department && (
             <motion.div
               key={`q-${currentQuestion}`}
               initial={{ opacity: 0, x: isRtl ? -30 : 30 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: isRtl ? 30 : -30 }}
-              className="w-full h-full flex flex-col items-center"
+              layout // إضافة layout لضمان انسيابية حركة العناصر عند ظهور الإيموجي فوقها
+              className="w-full h-full flex flex-col items-center px-4"
             >
-              {/* 1. القسم العلوي: السؤال (بمساحة ثابتة) */}
-              <div className="w-full flex flex-col items-center gap-1 pt-2">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80 mb-1">
-                    <span>{department.emoji}</span>
-                    <span className="text-[10px] uppercase tracking-widest">
-                      {isRtl ? department.nameAr : department.nameEn}
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-black text-foreground leading-tight px-4 min-h-[3rem] flex items-center justify-center">
-                    {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
-                  </h2>
-                </div>
-              </div>
-
-              {/* 2. القسم الأوسط: الإيموجي (متمركز في المنتصف بمرونة) */}
-              <div className="flex-1 flex flex-col items-center justify-center w-full min-h-[140px]">
+              {/* 1. حاوية الإيموجي "الشبح" (فوق السؤال) */}
+              <motion.div
+                layout
+                className={cn(
+                  "w-full flex flex-col items-center justify-center overflow-hidden transition-all duration-500 ease-in-out",
+                  currentRating > 0
+                    ? "h-32 opacity-100 mt-2"
+                    : "h-0 opacity-0 mt-0",
+                )}
+              >
                 <AnimatePresence mode="wait">
-                  {currentRating > 0 && ratingEmoji ? (
+                  {currentRating > 0 && ratingEmoji && (
                     <motion.div
                       key={ratingEmoji.score}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
+                      initial={{ scale: 0.5, opacity: 0, y: -10 }}
+                      animate={{ scale: 1.1, opacity: 1, y: 0 }} // تكبير بسيط عند الظهور ليعطي حياة
+                      transition={{
+                        type: "spring",
+                        stiffness: 260, // زيادة الصلابة لسرعة الاستجابة
+                        damping: 20, // زيادة التخميد لجعل الحركة تستقر بنعومة دون اهتزاز زائد
+                        mass: 1, // وزن طبيعي للعنصر
+                      }}
                       className="flex flex-col items-center"
                     >
-                      <span className="text-6xl md:text-7xl mb-2">
-                        {ratingEmoji.emoji}
-                      </span>
+                      <span className="text-6xl mb-2">{ratingEmoji.emoji}</span>
                       <span
                         className="text-xs font-bold px-3 py-1 rounded-full bg-secondary"
                         style={{ color: ratingEmoji.color }}
@@ -264,61 +271,110 @@ function SurveyContent() {
                         {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
                       </span>
                     </motion.div>
-                  ) : (
-                    <div className="h-24" /> // مساحة محجوزة عند عدم الاختيار
                   )}
                 </AnimatePresence>
-              </div>
+              </motion.div>
 
-              {/* 3. النجوم: قريبة من الإيموجي */}
-              <div className="w-full flex justify-center pb-6">
+              {/* 2. قسم السؤال (ينزلق للأسفل عند ظهور الإيموجي) */}
+              <motion.div
+                layout
+                className="w-full flex flex-col items-center gap-1 pt-4"
+              >
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80 mb-1">
+                    <span>{department.emoji}</span>
+                    <span className="text-[10px] uppercase tracking-widest">
+                      {isRtl ? department.nameAr : department.nameEn}
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-black text-foreground leading-tight text-center w-full">
+                    {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
+                  </h2>
+                </div>
+              </motion.div>
+
+              {/* 3. النجوم */}
+              <motion.div
+                layout
+                className="w-full flex-1 flex items-start justify-center pt-6"
+              >
                 <QuestionCard
                   question={department.questions[currentQuestion]}
                   questionIndex={currentQuestion}
                   totalQuestions={department.questions.length}
                   value={answers[department.questions[currentQuestion].id] ?? 0}
                   onChange={(v) =>
-                    handleAnswer(department.questions[currentQuestion].id, v)
+                    handleRatingToggle(
+                      department.questions[currentQuestion].id,
+                      v,
+                    )
                   }
                   language={lang}
                   minimal
                 />
-              </div>
+              </motion.div>
 
-              {/* 4. الأزرار: مسافة بسيطة ومدروسة */}
-              <div className="w-full flex flex-col-reverse items-center gap-4 pb-6">
-                <button
-                  onClick={handleNext}
-                  disabled={!answers[department.questions[currentQuestion].id]}
-                  className={cn(
-                    "w-full h-12 rounded-xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98]",
-                    answers[department.questions[currentQuestion].id]
-                      ? "bg-primary text-primary-foreground shadow-primary/20"
-                      : "bg-muted text-muted-foreground opacity-50",
-                  )}
-                >
-                  {currentQuestion < department.questions.length - 1
-                    ? isRtl
-                      ? "التالي"
-                      : "Next"
-                    : isRtl
-                      ? "تعليق"
-                      : "Comment"}
-                  {isRtl ? (
-                    <ArrowLeft className="w-4 h-4" />
-                  ) : (
-                    <ArrowRight className="w-4 h-4" />
-                  )}
-                </button>
-
+              {/* 4. الأزرار في الأسفل - توزيع يمين ويسار بتصميم شفاف */}
+              {/* حاوية الأزرار: تضمن توزيع الأزرار يميناً ويساراً وتوحيد الهوية البصرية */}
+              <motion.div
+                layout
+                className="w-full flex flex-row items-center justify-between gap-4 pb-8 px-2"
+              >
+                {/* زر السابق: تم توحيد الحجم وتعديل ترتيب السهم بناءً على اللغة */}
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBack}
-                  className="py-1 text-muted-foreground hover:text-foreground text-[11px] font-bold"
+                  // التنسيق: جعلنا العرض متناسباً مع المحتوى مع ضمان نفس مساحة الضغط
+                  className="flex items-center justify-center gap-2 w-32 py-2 text-primary hover:opacity-80 transition-all duration-300 font-bold text-sm bg-transparent border-none outline-none"
                 >
-                  {isRtl ? "السابق" : "Back"}
+                  {isRtl ? (
+                    /* ترتيب العربي: السهم يميناً (قبل الكلمة) ثم النص */
+                    <>
+                      <ArrowRight className="w-5 h-5" />
+                      <span>السابق</span>
+                    </>
+                  ) : (
+                    /* ترتيب الإنجليزي: السهم يساراً ثم النص */
+                    <>
+                      <ArrowLeft className="w-5 h-5" />
+                      <span>Back</span>
+                    </>
+                  )}
                 </motion.button>
-              </div>
+
+                {/* زر التالي: يطابق حجم زر السابق ويتغير لونه عند تفعيل الإجابة */}
+                <motion.button
+                  whileTap={
+                    answers[department.questions[currentQuestion].id]
+                      ? { scale: 0.95 }
+                      : {}
+                  }
+                  onClick={handleNext}
+                  disabled={!answers[department.questions[currentQuestion].id]}
+                  className={cn(
+                    "flex items-center justify-center gap-2 w-32 py-2 font-black text-sm transition-all duration-500 bg-transparent border-none outline-none",
+                    // التغيير البصري: يضيء الزر عند اختيار إجابة
+                    "text-primary",
+                    answers[department.questions[currentQuestion].id]
+                      ? "opacity-100 cursor-pointer"
+                      : "opacity-30 cursor-not-allowed",
+                  )}
+                >
+                  {isRtl ? (
+                    /* ترتيب العربي: النص ثم السهم يساراً (بعد الكلمة) */
+                    <>
+                      <span>التالي</span>
+                      <ArrowLeft className="w-5 h-5" />
+                    </>
+                  ) : (
+                    /* ترتيب الإنجليزي: النص ثم السهم يميناً */
+                    <>
+                      <span>Next</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </motion.button>
+              </motion.div>
             </motion.div>
           )}
 
@@ -396,7 +452,7 @@ function SurveyContent() {
                     🎉
                   </motion.span>
                 </h2>
-                <p className="text-muted-foreground text-base max-w-[280px] mx-auto italic leading-relaxed">
+                <p className="text-muted-foreground text-base max-w-60 mx-auto italic leading-relaxed">
                   {isRtl
                     ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا ورأيك محل اهتمامنا."
                     : "Your feedback has been submitted successfully."}
