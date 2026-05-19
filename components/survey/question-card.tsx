@@ -125,7 +125,7 @@ export function QuestionCard({
               exit={{ opacity: 0, height: 0 }}
               className="pt-4 border-t border-dashed border-border"
             >
-              <p className="text-xs font-bold text-destructive mb-3 text-center">
+              <p className="text-xs font-bold text-accent mb-3 text-center">
                 {language === "ar"
                   ? "يؤسفنا ذلك، ما هي المشكلة؟"
                   : "What went wrong?"}
@@ -140,7 +140,7 @@ export function QuestionCard({
                       "px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all border",
                       selectedReasons.includes(option)
                         ? "bg-destructive text-white border-destructive shadow-sm"
-                        : "bg-secondary/50 text-muted-foreground border-transparent hover:border-destructive/30",
+                        : "bg-background/70 text-muted-foreground border-transparent hover:border-destructive/30",
                     )}
                   >
                     {option}

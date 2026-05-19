@@ -20,12 +20,13 @@ export interface Department {
 
 export interface FeedbackEntry {
   id: string;
+  branchId: string;
   departmentId: string;
   departmentNameAr: string;
   departmentNameEn: string;
   answers: Record<string, number>;
   comment: string;
-  averageRating: number;
+  overallRating: number;
   createdAt: string;
 }
 
@@ -40,6 +41,17 @@ export interface Department {
   apologyAr: string; // الحقل الجديد للرسالة المخصصة
   image?: string;
 }
+
+export interface Branch {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+}
+
+export const BRANCHES: Branch[] = [
+  { id: "jeddah", nameAr: "فرع جدة", nameEn: "Jeddah Branch" },
+  { id: "mecca", nameAr: "فرع مكة", nameEn: "Mecca Branch" },
+];
 
 export const DEPARTMENTS: Department[] = [
   {
@@ -140,15 +152,133 @@ export const DEPARTMENTS: Department[] = [
     questions: [
       {
         id: "quality",
-        ar: "كيف تقيم طعم وجودة الخضروات والفواكه؟",
-        en: "How do you rate the quality?",
+        ar: "كيف تقيم نضارة وجودة الخضار والفاكهة اليوم؟",
+        en: "How do you rate the freshness and quality today?",
         icon: "leaf",
+        lowRatingOptions: [
+          "وجود ثمار تالفة/ذابلة",
+          "سوء تخزين",
+          "تغير في اللون",
+          "أخرى",
+        ],
       },
       {
-        id: "staff",
-        ar: "هل كان الموظفون متعاونين في الإجابة على استفساراتك؟",
-        en: "Were the staff helpful?",
+        id: "display",
+        ar: "ما رأيك في طريقة عرض الأصناف وسهولة الوصول إليها؟",
+        en: "What do you think of the display and accessibility?",
+        icon: "sparkles",
+        lowRatingOptions: [
+          "تأخير عند الميزان",
+          "عدم توفر أكياس",
+          "سوء تعامل الموظف",
+          "أخرى",
+        ],
+      },
+      {
+        id: "availability",
+        ar: "هل وجدت جميع الخضروات والفاكهة التي كنت تبحث عنها؟",
+        en: "Did you find all the items you were looking for?",
+        icon: "check",
+        lowRatingOptions: [
+          "أصناف أساسية غير موجودة",
+          "نقص في الورقيات",
+          "الكمية غير كافية",
+          "أخرى",
+        ],
+      },
+      {
+        id: "pricing",
+        ar: "هل كانت الأسعار واضحة وسرعة الوزن مرضية؟",
+        en: "Were the prices clear and the weighing speed satisfactory?",
+        icon: "tag",
+        lowRatingOptions: [
+          "الأسعار غير واضحة",
+          "السعر مرتفع جداً",
+          "بطء في عملية الوزن",
+          "أخرى",
+        ],
+      },
+      {
+        id: "cleanliness",
+        ar: "كيف تقيم نظافة الأرفف والأرضيات في هذا القسم؟",
+        en: "How do you rate the cleanliness of shelves and floors?",
+        icon: "wind",
+        lowRatingOptions: [
+          "العامل لا يرتدي قفازات",
+          "منطقة العرض غير نظيفة",
+          "وجود مخلفات على الأرض",
+          "أخرى",
+        ],
+      },
+    ],
+  },
+  {
+    id: "meat",
+    nameAr: "قسم اللحوم الطازجة",
+    nameEn: "Fresh Meat Department",
+    emoji: "🥩",
+    apologyAr:
+      "نعتذر منك بشدة، فجودة لحومنا ورضاكم هي أساس عملنا.. 🥩 نحن نؤمن أن كل ملاحظة هي فرصة للتطور. فضلاً، ساعدنا لنفهم ما حدث.",
+    questions: [
+      {
+        id: "meat_quality",
+        ar: "كيف تقيم لون وطراوة وجودة اللحم؟",
+        en: "How do you rate the color, tenderness, and quality of the meat?",
+        icon: "star",
+        lowRatingOptions: [
+          "اللحم غير طازج",
+          "لون غير طبيعي",
+          "رائحة غير مستحبة",
+          "أخرى",
+        ],
+      },
+      {
+        id: "meat_cleanliness",
+        ar: "ما رأيك في نظافة أدوات التقطيع ومظهر القصاب؟",
+        en: "How do you rate the cleanliness of tools and the butcher's appearance?",
+        icon: "sparkles",
+        lowRatingOptions: [
+          "الأدوات غير نظيفة",
+          "عدم ارتداء قفازات/كمامات",
+          "نظافة الثلاجات",
+          "أخرى",
+        ],
+      },
+      {
+        id: "butcher_skill",
+        ar: "كيف تقيم دقة القصاب في التقطيع والوزن؟",
+        en: "How do you rate the butcher's skill in cutting and weighing?",
         icon: "user",
+        lowRatingOptions: [
+          "تأخير في التجهيز",
+          "القصاب لم يلتزم بتعليمات التقطيع",
+          "سوء تعامل",
+          "أخرى",
+        ],
+      },
+      {
+        id: "meat_pricing",
+        ar: "هل كانت الأسعار ومصدر اللحوم واضحة بالنسبة لك؟",
+        en: "Were the prices and meat source clear to you?",
+        icon: "tag",
+        lowRatingOptions: [
+          "السعر مرتفع مقارنة بالجودة",
+          "عدم دقة في الوزن",
+          "المصدر غير واضح",
+          "أخرى",
+        ],
+      },
+      {
+        id: "packaging",
+        ar: "كيف تقيم جودة التغليف (تغليف حراري، أطباق، )؟",
+        en: "How do you rate the packaging quality (thermal, trays)?",
+        icon: "check",
+        lowRatingOptions: [
+          "التغليف غير محكم",
+          "الأكياس غير مناسبة",
+          "سوء التعبئة",
+          "أخرى",
+        ],
       },
     ],
   },
@@ -163,20 +293,58 @@ export const DEPARTMENTS: Department[] = [
       {
         id: "welcome",
         ar: "كيف تقيم أسلوب ترحيب الموظفين بك عند الدخول؟",
-        en: "How was the staff welcome?",
+        en: "How was the staff welcome upon entry?",
         icon: "user",
+        lowRatingOptions: ["قلة احترام", "عدم ترحيب", "تجاهل العميل", "أخرى"],
       },
       {
         id: "speed",
-        ar: "ما مدى رضاك عن سرعة إنجاز طلبك عند الكاشير؟",
-        en: "How was the checkout speed?",
+        ar: "ما مدى رضاك عن سرعة إنجاز طلبك أو الدفع عند الكاشير؟",
+        en: "How satisfied are you with the payment/checkout speed?",
         icon: "zap",
+        lowRatingOptions: [
+          "طابور طويل",
+          "بطء في الكاشير",
+          "إهمال الطلبات",
+          "أخرى",
+        ],
+      },
+      {
+        id: "cooperation",
+        ar: "هل كان الموظفون متعاونين في الإجابة على استفساراتك؟",
+        en: "Were the staff helpful in answering your inquiries?",
+        icon: "sparkles",
+        lowRatingOptions: [
+          "الموظف لا يعرف تفاصيل المنتجات",
+          "عدم المعرفة بالأسعار",
+          "أسلوب غير متعاون",
+          "أخرى",
+        ],
       },
       {
         id: "grooming",
         ar: "كيف تقيم مهنية الموظفين وهندامهم الرسمي؟",
-        en: "How was the staff professional look?",
+        en: "How do you rate the staff professionalism and grooming?",
         icon: "check",
+        lowRatingOptions: [
+          "عدم الالتزام بالزي الرسمي",
+          "النظافة الشخصية",
+          "مظهر غير مهني",
+          "أخرى",
+        ],
+      },
+      {
+        id: "complaints",
+        ar: "(في حال واجهت مشكلة) كيف كان تجاوبنا لحلها؟",
+        en: "If you faced a problem, how was our response?",
+        icon: "tag",
+        lowRatingOptions: [
+          "الموظف لم يعطِ اهتماماً لشكواي",
+          "حاول التهرب من المشكلة",
+          "كان الأسلوب حاداً/غير احترافي",
+          "تم تقديم حل ولكن غير منصف",
+          "أخرى",
+        ],
       },
     ],
   },
@@ -227,122 +395,134 @@ export const RATING_EMOJIS = [
 export const MOCK_FEEDBACK: FeedbackEntry[] = [
   {
     id: "1",
+    branchId: "jeddah",
     departmentId: "bakery",
     departmentNameAr: "المخبوزات",
     departmentNameEn: "Bakery",
     answers: { taste: 4, variety: 5, availability: 3, service: 4 },
     comment: "المخبوزات طازجة ولذيذة جداً، استمروا على هذا المستوى",
-    averageRating: 4,
+    overallRating: 4,
     createdAt: "2025-01-15T10:23:00",
   },
   {
     id: "2",
+    branchId: "mecca",
     departmentId: "vegetables",
     departmentNameAr: "الخضروات",
     departmentNameEn: "Vegetables",
     answers: { freshness: 2, sorting: 3, variety: 2, price: 1 },
     comment: "الخضروات لم تكن طازجة كما أتوقع",
-    averageRating: 2,
+    overallRating: 2,
     createdAt: "2025-01-15T11:10:00",
   },
   {
     id: "3",
+    branchId: "jeddah",
     departmentId: "service",
     departmentNameAr: "الخدمة العامة",
     departmentNameEn: "General Service",
     answers: { staff: 5, cleanliness: 5, speed: 4, overall: 5 },
     comment: "خدمة ممتازة وموظفين محترمين",
-    averageRating: 5,
+    overallRating: 5,
     createdAt: "2025-01-14T14:00:00",
   },
   {
     id: "4",
+    branchId: "mecca",
     departmentId: "dairy",
     departmentNameAr: "الألبان والأجبان",
     departmentNameEn: "Dairy",
     answers: { quality: 3, variety: 3, expiry: 4, temperature: 2 },
     comment: "",
-    averageRating: 3,
+    overallRating: 3,
     createdAt: "2025-01-14T09:45:00",
   },
   {
     id: "5",
+    branchId: "jeddah",
     departmentId: "bakery",
     departmentNameAr: "المخبوزات",
     departmentNameEn: "Bakery",
     answers: { taste: 5, variety: 4, availability: 5, service: 5 },
     comment: "أفضل مخبوزات في المنطقة",
-    averageRating: 5,
+    overallRating: 5,
     createdAt: "2025-01-13T16:20:00",
   },
   {
     id: "6",
+    branchId: "mecca",
     departmentId: "meat",
     departmentNameAr: "اللحوم",
     departmentNameEn: "Meat",
     answers: { freshness: 3, quality: 4, cleanliness: 2, service: 3 },
     comment: "اللحم جيد لكن النظافة تحتاج تحسين",
-    averageRating: 3,
+    overallRating: 3,
     createdAt: "2025-01-13T18:00:00",
   },
   {
     id: "7",
+    branchId: "jeddah",
     departmentId: "fruits",
     departmentNameAr: "الفواكه",
     departmentNameEn: "Fruits",
     answers: { freshness: 4, ripeness: 5, variety: 4, display: 4 },
     comment: "العرض جميل والفواكه طازجة",
-    averageRating: 4.25,
+    overallRating: 4.25,
     createdAt: "2025-01-12T11:30:00",
   },
   {
     id: "8",
+    branchId: "mecca",
     departmentId: "fish",
     departmentNameAr: "الأسماك",
     departmentNameEn: "Fish & Seafood",
     answers: { freshness: 4, smell: 4, variety: 5, service: 4 },
     comment: "",
-    averageRating: 4.25,
+    overallRating: 4.25,
     createdAt: "2025-01-11T13:00:00",
   },
   {
     id: "9",
+    branchId: "jeddah",
     departmentId: "bakery",
     departmentNameAr: "المخبوزات",
     departmentNameEn: "Bakery",
     answers: { taste: 1, variety: 2, availability: 1, service: 2 },
     comment: "المنتجات كانت قديمة وغير طازجة",
-    averageRating: 1.5,
+    overallRating: 1.5,
     createdAt: "2025-01-10T08:00:00",
   },
   {
     id: "10",
+    branchId: "mecca",
     departmentId: "service",
     departmentNameAr: "الخدمة العامة",
     departmentNameEn: "General Service",
     answers: { staff: 4, cleanliness: 5, speed: 5, overall: 5 },
     comment: "تجربة رائعة كما دائماً",
-    averageRating: 4.75,
+    overallRating: 4.75,
     createdAt: "2025-01-09T15:30:00",
   },
   {
     id: "11",
+    branchId: "jeddah",
     departmentId: "deli",
     departmentNameAr: "المعلبات والمواد الغذائية",
     departmentNameEn: "Deli & Groceries",
     answers: { availability: 5, organization: 4, expiry: 5, price: 3 },
     comment: "تشكيلة واسعة من المنتجات",
-    averageRating: 4.25,
+    overallRating: 4.25,
     createdAt: "2025-01-08T12:00:00",
   },
   {
     id: "12",
+    branchId: "mecca",
     departmentId: "vegetables",
     departmentNameAr: "الخضروات",
     departmentNameEn: "Vegetables",
     answers: { freshness: 5, sorting: 5, variety: 4, price: 4 },
     comment: "خضروات ممتازة وطازجة",
-    averageRating: 4.5,
+    overallRating: 4.5,
     createdAt: "2025-01-07T09:15:00",
   },
 ];
@@ -375,7 +555,7 @@ export function getDepartmentStats() {
     const avg = entries.length
       ? parseFloat(
           (
-            entries.reduce((s, e) => s + e.averageRating, 0) / entries.length
+            entries.reduce((s, e) => s + e.overallRating, 0) / entries.length
           ).toFixed(1),
         )
       : 0;

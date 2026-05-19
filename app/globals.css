@@ -1,7 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
-
-@custom-variant dark (&:is(.dark *));
+@import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
   /* Hala Markets Brand Colors */
@@ -18,17 +16,14 @@
   --muted: oklch(0.94 0.015 145);
   --muted-foreground: oklch(0.52 0.04 145);
   --accent: oklch(0.7 0.18 55);
-  --accent-foreground: oklch(0.15 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  --accent-foreground: rgb(11, 11, 11);
+  --destructive: oklch(0.7 0.18 55);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.88 0.025 145);
   --input: oklch(0.88 0.025 145);
   --ring: oklch(0.42 0.135 145);
   --chart-1: oklch(0.42 0.135 145);
   --chart-2: oklch(0.7 0.18 55);
-  --chart-3: oklch(0.55 0.16 30);
-  --chart-4: oklch(0.6 0.12 200);
-  --chart-5: oklch(0.75 0.14 90);
   --radius: 0.75rem;
   --sidebar: oklch(0.22 0.06 145);
   --sidebar-foreground: oklch(0.92 0.015 145);
@@ -38,49 +33,15 @@
   --sidebar-accent-foreground: oklch(0.92 0.015 145);
   --sidebar-border: oklch(0.32 0.06 145);
   --sidebar-ring: oklch(0.55 0.12 145);
-  --hala-green: #2d7a3a;
-  --hala-orange: #e8831a;
-  --star-color: #f59e0b;
-}
-
-.dark {
-  --background: oklch(0.14 0.03 145);
-  --foreground: oklch(0.92 0.015 145);
-  --card: oklch(0.19 0.04 145);
-  --card-foreground: oklch(0.92 0.015 145);
-  --popover: oklch(0.19 0.04 145);
-  --popover-foreground: oklch(0.92 0.015 145);
-  --primary: oklch(0.55 0.155 145);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.26 0.06 145);
-  --secondary-foreground: oklch(0.92 0.015 145);
-  --muted: oklch(0.26 0.06 145);
-  --muted-foreground: oklch(0.65 0.04 145);
-  --accent: oklch(0.7 0.18 55);
-  --accent-foreground: oklch(0.15 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.28 0.05 145);
-  --input: oklch(0.28 0.05 145);
-  --ring: oklch(0.55 0.155 145);
-  --chart-1: oklch(0.55 0.155 145);
-  --chart-2: oklch(0.7 0.18 55);
-  --chart-3: oklch(0.55 0.16 30);
-  --chart-4: oklch(0.6 0.12 200);
-  --chart-5: oklch(0.75 0.14 90);
-  --sidebar: oklch(0.17 0.04 145);
-  --sidebar-foreground: oklch(0.92 0.015 145);
-  --sidebar-primary: oklch(0.7 0.18 55);
-  --sidebar-primary-foreground: oklch(0.15 0 0);
-  --sidebar-accent: oklch(0.26 0.06 145);
-  --sidebar-accent-foreground: oklch(0.92 0.015 145);
-  --sidebar-border: oklch(0.28 0.05 145);
-  --sidebar-ring: oklch(0.55 0.12 145);
+  /* 🆕 ألوان شاشة التقييم الجديدة الموحدة بالمسطرة */
+  --survey-bg: #006e48; /* الأخضر الداكن الملكي للخلفية */
+  --survey-accent-1: #c0d56c; /* الأخضر الفستقي المساند */
+  --survey-accent-2: #e6540e; /* البرتقالي الناري للأزرار */
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: "Geist", "Geist Fallback";
+  --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -121,10 +82,12 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: rgba(var(--ring), 0.5);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
@@ -137,5 +100,27 @@
   }
   .star-filled {
     color: var(--star-color);
+  }
+
+  /* 🆕 كلاسات الألوان الجديدة لشاشة التقييمات فقط */
+  .bg-survey-bg {
+    background-color: #006e48;
+  }
+  .text-survey-bg {
+    color: #006e48;
+  }
+
+  .bg-survey-accent-1 {
+    background-color: #c0d56c;
+  }
+  .text-survey-accent-1 {
+    color: #c0d56c;
+  }
+
+  .bg-survey-accent-2 {
+    background-color: #e6540e;
+  }
+  .text-survey-accent-2 {
+    color: #e6540e;
   }
 }

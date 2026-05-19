@@ -4,10 +4,11 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ClipboardCheck } from "lucide-react";
 import { QuestionCard } from "@/components/survey/question-card";
 import {
   DEPARTMENTS,
+  BRANCHES,
   RATING_EMOJIS,
   type Language,
   type Department,
@@ -28,12 +29,19 @@ function SurveyContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const searchParams = useSearchParams();
   const deptParam = searchParams.get("dept");
+  const branchParam = searchParams.get("branch") ?? "jeddah";
+
+  // 🆕 السطر الذكي: يبحث في المصفوفة عن الفرع المطابق للـ ID الممرر في الرابط
+  const currentBranch =
+    BRANCHES.find((b) => b.id === branchParam) ?? BRANCHES[0]; // 👈 سطر جديد: لقط الفرع وإذا لم يجد فرع بالرابط يضع "jeddah" كافتراضي
 
   const [lang, setLang] = useState<Language>("ar");
   const [step, setStep] = useState<Step>("welcome");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [comment, setComment] = useState("");
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
 
   const department: Department | undefined =
     DEPARTMENTS.find((d) => d.id === deptParam) ?? DEPARTMENTS[0];
@@ -97,25 +105,45 @@ function SurveyContent() {
 
   async function handleSubmit() {
     if (isSubmitting) return;
+
+    // 1. 🆕 حساب متوسط التقييم الحالي لمعرفة حالة العميل
+    const scores = Object.values(answers).map((ans: any) => {
+      if (typeof ans === "object" && ans !== null) return ans.rating;
+      return typeof ans === "number" ? ans : 0;
+    });
+    const averageRating = scores.length
+      ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+      : 0;
+
+    // هل العميل غير راضٍ؟ (تقييمه الحقيقي نزل لـ 2 أو أقل)
+    const isCustomerAngry = averageRating > 0 && averageRating <= 2;
+
+    // 2. 🚨 قفل الأمان الصارم: منع الإرسال لو العميل زعلان ولم يكتب بيانات التواصل
+    if (isCustomerAngry && (!customerName.trim() || !customerPhone.trim())) {
+      alert(
+        isRtl
+          ? "لأن تقييمك محل اهتمامنا، يرجى كتابة الاسم ورقم الجوال لنتمكن من التواصل معك ومعالجة المشكلة فوراً."
+          : "Please provide your name and phone number so we can reach out and make it right.",
+      );
+      return; // يوقف الفنكشن هنا تماماً ويمنع الـ fetch للـ API
+    }
+
     setIsSubmitting(true);
     try {
-      const scores = Object.values(answers).map((ans: any) => {
-        if (typeof ans === "object" && ans !== null) return ans.rating;
-        return typeof ans === "number" ? ans : 0;
-      });
-      const averageRating = scores.length
-        ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
-        : 0;
       const response = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          branchId: branchParam,
           departmentId: department?.id,
           departmentName:
             lang === "ar" ? department?.nameAr : department?.nameEn,
           overallRating: averageRating,
           comment: comment,
           answers: answers,
+          // 3. 🆕 إرسال الاسم ورقم الهاتف الملقوطين من الواجهة إلى الـ API
+          customerName: customerName,
+          customerPhone: customerPhone,
         }),
       });
       if (response.ok) setStep("success");
@@ -131,15 +159,15 @@ function SurveyContent() {
   return (
     /* 1. استخدام dvh لضمان المقاس الصحيح على الجوال ومنع السكرول نهائياً */
     <div
-      className="min-h-dvh w-full bg-background flex flex-col overflow-y-auto relative pb-6"
+      className="min-h-dvh w-full bg-survey-bg flex flex-col overflow-y-auto relative pb-6"
       dir={dir}
     >
       {/* Header - تقليل البادينج */}
       <header
-        className="w-full flex items-center justify-between px-6 py-3 z-60 sticky top-0 bg-background/80 backdrop-blur-md"
+        className="w-full flex items-center justify-between px-6 py-3 z-60 sticky top-0 bg-survey-bg"
         dir="ltr"
       >
-        <div className="flex items-center gap-1 bg-secondary rounded-full p-1 shadow-sm border border-border/50">
+        <div className="flex items-center gap-1 bg-secondary-foreground rounded-full p-1 shadow-sm border border-border/50">
           {(["ar", "en"] as Language[]).map((l) => (
             <button
               key={l}
@@ -147,8 +175,8 @@ function SurveyContent() {
               className={cn(
                 "px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-300",
                 lang === l
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-survey-accent-2 text-primary-foreground shadow-md"
+                  : "text-muted hover:text-foreground",
               )}
             >
               {l === "ar" ? "عربي" : "EN"}
@@ -163,10 +191,10 @@ function SurveyContent() {
           {department.questions.map((_, index) => (
             <div
               key={index}
-              className="flex-1 h-1 bg-gray-200/60 rounded-full overflow-hidden relative"
+              className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden relative"
             >
               <motion.div
-                className="absolute inset-0 bg-primary rounded-full"
+                className="absolute inset-0 bg-survey-accent-1 rounded-full shadow-[0_0_8px_rgba(192,213,108,0.5)]"
                 initial={{ width: index < currentQuestion ? "100%" : "0%" }}
                 animate={{ width: index <= currentQuestion ? "100%" : "0%" }}
                 transition={{ duration: 0.4 }}
@@ -189,42 +217,64 @@ function SurveyContent() {
               exit={{ opacity: 0 }}
               className="w-full flex-1 flex flex-col items-center justify-center gap-8 min-h-[70dvh]"
             >
-              <div className="relative w-52 h-24">
+              <div className="relative w-64 h-36">
                 <Image
-                  src="/E33.png"
+                  src="/lo25.png"
                   alt="Hala Markets"
                   fill
                   priority
                   className="object-contain"
                 />
               </div>
-              <div className="text-center space-y-2">
-                <h1 className="text-2xl font-extrabold text-foreground">
-                  {isRtl ? "أهلاً وسهلاً بك" : "Welcome!"}
+              {/* العبارة الترحيبية الديناميكية الموحدة بالمسطرة تتبع ملف الـ Data */}
+              <div className="text-center px-4 max-w-sm mx-auto">
+                <h1 className="text-2xl font-black text-white leading-relaxed">
+                  {isRtl ? (
+                    <>
+                      مرحباً بك في{" "}
+                      <span className="text-survey-accent-1 font-black">
+                        {department?.nameAr} - {currentBranch?.nameAr}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      Welcome to{" "}
+                      <span className="text-survey-accent-1 font-black">
+                        {department?.nameEn} Dept - {currentBranch?.nameEn}{" "}
+                      </span>
+                    </>
+                  )}
                 </h1>
-                <p className="text-muted-foreground text-sm max-w-60 mx-auto italic">
+
+                {/* رسالة فرعية ناعمة تحتها */}
+                <p className="text-white/70 text-xs italic mt-3">
                   {isRtl
-                    ? "نسعد بخدمتكم دائماً في أسواق هلا"
-                    : "We are happy to serve you at Hala Markets"}
+                    ? "يسعدنا أن تشاركنا رأيك السريع لمساعدتنا في تقديم الأفضل لك دائماً"
+                    : "Your feedback helps us improve your experience"}
                 </p>
               </div>
+              {/* زر ابدأ التقييم: حدود برتقالية نارية ونص أبيض ناصع عالي التباين */}
+              {/* زر ابدأ التقييم: تصميم مربع ملموم باللون البرتقالي الكامل يطابق نمط الصورة */}
               <button
                 onClick={() => {
                   setStep("questions");
                   setCurrentQuestion(0);
                   setAnswers({});
                 }}
-                className="w-full max-w-60 bg-primary text-primary-foreground rounded-2xl h-14 font-bold text-lg flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform"
+                // التنسيق: عرض ملموم (w-56)، خلفية برتقالية كاملة، حواف دائرية متوسطة، ونص أبيض فخم
+                className="w-38 h-10 bg-survey-accent-1 hover:bg-[#d4490c] text-white rounded-none font-bold text-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all duration-200"
               >
                 {isRtl ? (
                   <>
                     <span>ابدأ التقييم</span>
-                    <ArrowLeft />
+                    {/* السهم يلتفت لليسار في العربي ليقود المستخدم للخطوة التالية */}
+                    <ArrowLeft className="w-4 h-4 text-white/90" />
                   </>
                 ) : (
                   <>
-                    <span>Start Survey</span>
-                    <ArrowRight />
+                    <span>Get started</span>
+                    {/* السهم يلتفت لليمن في الإنجليزي ليتماشى مع اتجاه القراءة */}
+                    <ArrowRight className="w-4 h-4 text-white/90" />
                   </>
                 )}
               </button>
@@ -274,11 +324,12 @@ function SurveyContent() {
                           quality={100} // لضمان جودة الصورة بدون ضغط زائد يؤخر المعالجة
                         />
                       </div>
+
                       <span
                         className="text-xs font-bold px-4 py-1.5 rounded-full bg-secondary leading-none flex items-center justify-center min-h-fit"
                         style={{
                           color: ratingEmoji.color,
-                          backgroundColor: `${ratingEmoji.color}15`, // إضافة شفافية 15% للون الخلفية
+                          backgroundColor: `${ratingEmoji.color}50`, // إضافة شفافية 15% للون الخلفية
                         }}
                       >
                         {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
@@ -293,14 +344,17 @@ function SurveyContent() {
                 layout
                 className="w-full flex flex-col items-center gap-1 pt-4"
               >
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-2 text-primary font-bold opacity-80 mb-1">
+                <div className="text-center space-y-2">
+                  {/* تاق القسم بلون فستقي ليموني منور */}
+                  <div className="flex items-center justify-center gap-2 text-survey-accent-1 font-bold text-sm">
                     <span>{department.emoji}</span>
-                    <span className="text-[10px] uppercase tracking-widest">
+                    <span className="uppercase tracking-wider">
                       {isRtl ? department.nameAr : department.nameEn}
                     </span>
                   </div>
-                  <h2 className="text-lg font-black text-foreground leading-tight text-center w-full">
+
+                  {/* نص السؤال باللون الأبيض الناصع عالي التباين */}
+                  <h2 className="text-2xl font-black text-white leading-snug text-center max-w-sm mx-auto">
                     {department.questions[currentQuestion][isRtl ? "ar" : "en"]}
                   </h2>
                 </div>
@@ -338,18 +392,18 @@ function SurveyContent() {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleBack}
                   // التنسيق: جعلنا العرض متناسباً مع المحتوى مع ضمان نفس مساحة الضغط
-                  className="flex items-center justify-center gap-2 w-32 py-2 text-primary hover:opacity-80 transition-all duration-300 font-bold text-sm bg-transparent border-none outline-none"
+                  className="flex items-center justify-center gap-2 w-32 py-2 text-white hover:opacity-80 transition-all duration-300 font-bold text-sm bg-transparent border-none outline-none"
                 >
                   {isRtl ? (
                     /* ترتيب العربي: السهم يميناً (قبل الكلمة) ثم النص */
                     <>
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-5 h-5 text-survey-accent-1" />
                       <span>السابق</span>
                     </>
                   ) : (
                     /* ترتيب الإنجليزي: السهم يساراً ثم النص */
                     <>
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeft className="w-5 h-5 text-survey-accent-1" />
                       <span>Back</span>
                     </>
                   )}
@@ -365,9 +419,7 @@ function SurveyContent() {
                   onClick={handleNext}
                   disabled={!answers[department.questions[currentQuestion].id]}
                   className={cn(
-                    "flex items-center justify-center gap-2 w-32 py-2 font-black text-sm transition-all duration-500 bg-transparent border-none outline-none",
-                    // التغيير البصري: يضيء الزر عند اختيار إجابة
-                    "text-primary",
+                    "flex items-center justify-center gap-2 w-32 py-2 text-white hover:opacity-80 transition-all duration-300 font-bold text-sm bg-transparent border-none outline-none", // التغيير البصري: يضيء الزر عند اختيار إجابة
                     answers[department.questions[currentQuestion].id]
                       ? "opacity-100 cursor-pointer"
                       : "opacity-30 cursor-not-allowed",
@@ -377,13 +429,13 @@ function SurveyContent() {
                     /* ترتيب العربي: النص ثم السهم يساراً (بعد الكلمة) */
                     <>
                       <span>التالي</span>
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeft className="w-5 h-5 text-survey-accent-1" />
                     </>
                   ) : (
                     /* ترتيب الإنجليزي: النص ثم السهم يميناً */
                     <>
                       <span>Next</span>
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-5 h-5 text-survey-accent-1" />
                     </>
                   )}
                 </motion.button>
@@ -399,24 +451,127 @@ function SurveyContent() {
               animate={{ opacity: 1 }}
               className="w-full h-full flex flex-col items-center justify-between pb-4"
             >
-              <div className="w-full flex flex-col gap-4 pt-4 text-center">
-                <h2 className="text-xl font-black">
-                  {isRtl ? "هل تريد إضافة تعليق؟" : "Any comments?"}
-                </h2>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  className="w-full bg-card border border-border rounded-2xl p-4 h-32 focus:ring-2 focus:ring-primary/20 focus:outline-none"
-                  placeholder={
-                    isRtl ? "اكتب ملاحظاتك هنا..." : "Your feedback here..."
-                  }
-                />
+              <div className="w-full flex flex-col gap-4 pt-4">
+                {/* 1. حساب حالة العميل بشكل حي لمعرفة التنسيق المطلوب */}
+                {(() => {
+                  const scores = Object.values(answers).map((ans: any) => {
+                    if (typeof ans === "object" && ans !== null)
+                      return ans.rating;
+                    return typeof ans === "number" ? ans : 0;
+                  });
+                  const averageRating = scores.length
+                    ? Math.round(
+                        scores.reduce((a, b) => a + b, 0) / scores.length,
+                      )
+                    : 0;
+                  const isCustomerAngry =
+                    averageRating > 0 && averageRating <= 2;
+
+                  return (
+                    <>
+                      {/* عنوان الشاشة الذكي: يتغير حسب نفسية العميل (راضي أو زعلان) */}
+                      <h2 className="text-xl font-black text-center text-background">
+                        {isCustomerAngry
+                          ? isRtl
+                            ? "نعتذر منك ونريد سماعك!"
+                            : "We apologize and want to make it right!"
+                          : isRtl
+                            ? "هل تريد إضافة تعليق؟"
+                            : "Any comments?"}
+                      </h2>
+
+                      {/* 🆕 2. خانات بيانات العميل الجديدة (الاسم والرقْم) */}
+                      <div className="grid grid-cols-1 gap-3 w-full text-right mt-2">
+                        {/* حقل الاسم الكامل */}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-bold text-foreground">
+                            {isRtl ? "الاسم الكامل" : "Full Name"}
+                            {/* لو زعلان تظهر عبارة إجباري حمراء، ولو راضي تظهر اختياري رمادية */}
+                            {isCustomerAngry ? (
+                              <span className="text-destructive mr-1 text-[10px] font-black">
+                                (إجباري لمتابعة الشكوى)
+                              </span>
+                            ) : (
+                              <span className="text-muted/80 mr-1 text-[10px] font-normal">
+                                (اختياري)
+                              </span>
+                            )}
+                          </span>
+                          <input
+                            type="text"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            placeholder={
+                              isRtl ? "اكتب اسمك هنا..." : "Your name..."
+                            }
+                            className={cn(
+                              "w-full bg-card border rounded-sm p-3 text-sm focus:outline-none transition-all",
+                              isCustomerAngry
+                                ? "border-destructive/40 "
+                                : "border-border focus:ring-2 focus:ring-primary/20",
+                            )}
+                          />
+                        </div>
+
+                        {/* حقل رقم الجوال */}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-bold text-foreground">
+                            {isRtl ? "رقم الجوال" : "Phone Number"}
+                            {isCustomerAngry ? (
+                              <span className="text-destructive mr-1 text-[10px] font-black">
+                                (إجباري لحل المشكلة)
+                              </span>
+                            ) : (
+                              <span className="text-muted/80 mr-1 text-[10px] font-normal">
+                                (اختياري)
+                              </span>
+                            )}
+                          </span>
+                          <input
+                            type="tel"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            placeholder={isRtl ? "05xxxxxxxx" : "05xxxxxxxx"}
+                            className={cn(
+                              "w-full bg-card border rounded-sm p-3 text-sm focus:outline-none transition-all text-right",
+                              isCustomerAngry
+                                ? "border-destructive/40 "
+                                : "border-border focus:ring-2 focus:ring-primary/20",
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      {/* 3. حقل الملاحظات والتعليقات الأصلي ملموم ومنسق */}
+                      <div className="flex flex-col gap-1 text-right">
+                        <span className="text-xs font-bold text-forebackground">
+                          {isRtl ? "ملاحظات إضافية" : "Additional Comments"}
+                          <span className="text-muted/80 text-[10px] font-normal mr-1">
+                            (اختياري)
+                          </span>
+                        </span>
+                        <textarea
+                          value={comment}
+                          onChange={(e) => setComment(e.target.value)}
+                          className="w-full bg-card border border-border rounded-sm p-4 h-24 focus:ring-2 focus:ring-primary/20 focus:outline-none text-sm resize-none"
+                          placeholder={
+                            isRtl
+                              ? "اكتب ملاحظاتك هنا..."
+                              : "Your feedback here..."
+                          }
+                        />
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
-              <div className="w-full flex flex-col-reverse items-center gap-1">
+
+              {/* الأزرار التحتية الأصلية للإرسال والرجوع */}
+              <div className="w-full flex flex-col-reverse items-center gap-1 mt-4">
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="w-full h-14 bg-primary text-primary-foreground rounded-xl font-black shadow-lg"
+                  className="w-full h-10 bg-survey-accent-1 hover:bg-[#e6540e] text-white rounded-ss-none font-bold text-xl flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all duration-200"
                 >
                   {isSubmitting
                     ? "جاري الإرسال..."
@@ -426,14 +581,13 @@ function SurveyContent() {
                 </button>
                 <button
                   onClick={handleBack}
-                  className="py-2 text-muted-foreground text-xs font-bold"
+                  className="py-2 text-muted text-xs font-bold"
                 >
                   {isRtl ? "رجوع للأسئلة" : "Back to questions"}
                 </button>
               </div>
             </motion.div>
           )}
-
           {/* Success Step */}
           {step === "success" && (
             <motion.div
@@ -470,12 +624,6 @@ function SurveyContent() {
                     ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا ورأيك محل اهتمامنا."
                     : "Your feedback has been submitted successfully."}
                 </p>
-                <button
-                  onClick={resetToWelcome}
-                  className="text-primary font-black text-sm hover:underline underline-offset-8 mt-4"
-                >
-                  {isRtl ? "إرسال تقييم لقسم آخر" : "Rate another department"}
-                </button>
               </div>
             </motion.div>
           )}

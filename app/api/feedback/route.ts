@@ -1,53 +1,59 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
 
 // 1. بدلاً من إنشاء العميل فوراً، ننشئ دالة تستدعيه عند الحاجة فقط
 const getSupabase = () => {
   return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-  )
-}
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+  );
+};
 
 export async function GET() {
   try {
-    const supabase = getSupabase() // استدعاء العميل هنا داخل الدالة
+    const supabase = getSupabase(); // استدعاء العميل هنا داخل الدالة
     const { data, error } = await supabase
-      .from('Feedback')
-      .select('*')
-      .order('createdAt', { ascending: false })
+      .from("Feedback")
+      .select("*")
+      .order("createdAt", { ascending: false });
 
-    if (error) throw error
+    if (error) throw error;
 
-    return NextResponse.json(data || [])
+    return NextResponse.json(data || []);
   } catch (error: any) {
-    console.error("API Error:", error)
-    return NextResponse.json([], { status: 500 })
+    console.error("API Error:", error);
+    return NextResponse.json([], { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const supabase = getSupabase() // استدعاء العميل هنا داخل الدالة
-    
+    const body = await request.json();
+    const supabase = getSupabase(); // استدعاء العميل هنا داخل الدالة
+
     const { data, error } = await supabase
-      .from('Feedback')
+      .from("Feedback")
       .insert([
         {
+          branchId: body.branchId,
           departmentId: body.departmentId,
           departmentName: body.departmentName,
           overallRating: body.overallRating,
           comment: body.comment,
           answers: body.answers,
-        }
+          customerName: body.customerName || null,
+          customerPhone: body.customerPhone || null,
+        },
       ])
-      .select()
+      .select();
 
-    if (error) throw error
-    return NextResponse.json({ success: true, data })
+    if (error) throw error;
+    return NextResponse.json({ success: true, data });
   } catch (error: any) {
-    console.error("POST API Error:", error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error("POST API Error:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 },
+    );
   }
 }
