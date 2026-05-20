@@ -125,7 +125,7 @@ export function QuestionCard({
               exit={{ opacity: 0, height: 0 }}
               className="pt-4 border-t border-dashed border-border"
             >
-              <p className="text-xs font-bold text-accent mb-3 text-center">
+              <p className="text-xs font-bold text-white mb-3 text-center">
                 {language === "ar"
                   ? "يؤسفنا ذلك، ما هي المشكلة؟"
                   : "What went wrong?"}
@@ -140,7 +140,7 @@ export function QuestionCard({
                       "px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all border",
                       selectedReasons.includes(option)
                         ? "bg-destructive text-white border-destructive shadow-sm"
-                        : "bg-background/70 text-muted-foreground border-transparent hover:border-destructive/30",
+                        : "bg-survey-accent-1 text-accent-foreground border-transparent hover:border-destructive/30",
                     )}
                   >
                     {option}
@@ -156,7 +156,7 @@ export function QuestionCard({
                   placeholder={
                     language === "ar" ? "وضح لنا أكثر..." : "Tell us more..."
                   }
-                  className="w-full mt-3 p-3 bg-secondary/30 border border-border rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-destructive/30"
+                  className="w-full mt-3 p-3 bg-secondary border border-border rounded-sm text-xs focus:outline-none focus:ring-2 focus:ring-survey-accent-1"
                   value={otherText}
                   onChange={(e) => {
                     setOtherText(e.target.value);

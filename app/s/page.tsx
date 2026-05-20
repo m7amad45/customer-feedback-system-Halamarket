@@ -326,10 +326,9 @@ function SurveyContent() {
                       </div>
 
                       <span
-                        className="text-xs font-bold px-4 py-1.5 rounded-full bg-secondary leading-none flex items-center justify-center min-h-fit"
+                        className="text-xs font-black px-4 py-1.5 rounded-full text-white leading-none flex items-center justify-center min-h-fit"
                         style={{
-                          color: ratingEmoji.color,
-                          backgroundColor: `${ratingEmoji.color}50`, // إضافة شفافية 15% للون الخلفية
+                          backgroundColor: `${ratingEmoji.color}80`, // الخلفية تصبغ باللون كامل بدون شفافية
                         }}
                       >
                         {isRtl ? ratingEmoji.label : ratingEmoji.labelEn}
@@ -470,7 +469,7 @@ function SurveyContent() {
                   return (
                     <>
                       {/* عنوان الشاشة الذكي: يتغير حسب نفسية العميل (راضي أو زعلان) */}
-                      <h2 className="text-xl font-black text-center text-background">
+                      <h2 className="text-xl font-black text-center text-white">
                         {isCustomerAngry
                           ? isRtl
                             ? "نعتذر منك ونريد سماعك!"
@@ -484,13 +483,19 @@ function SurveyContent() {
                       <div className="grid grid-cols-1 gap-3 w-full text-right mt-2">
                         {/* حقل الاسم الكامل */}
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs font-bold text-foreground">
+                          <span className="text-xs font-bold text-white">
                             {isRtl ? "الاسم الكامل" : "Full Name"}
-                            {/* لو زعلان تظهر عبارة إجباري حمراء، ولو راضي تظهر اختياري رمادية */}
+
+                            {/* لو زعلان تظهر عبارة إجباري ومعها النجمة بنفس شكلها الأصلي، ولو راضي تظهر اختياري فقط */}
                             {isCustomerAngry ? (
-                              <span className="text-destructive mr-1 text-[10px] font-black">
-                                (إجباري لمتابعة الشكوى)
-                              </span>
+                              <>
+                                <span className="text-destructive font-light text-lg leading-none mr-1">
+                                  *
+                                </span>
+                                <span className="text-destructive mr-1 text-[10px] font-black">
+                                  (إجباري لمتابعة الشكوى)
+                                </span>
+                              </>
                             ) : (
                               <span className="text-muted/80 mr-1 text-[10px] font-normal">
                                 (اختياري)
@@ -507,20 +512,26 @@ function SurveyContent() {
                             className={cn(
                               "w-full bg-card border rounded-sm p-3 text-sm focus:outline-none transition-all",
                               isCustomerAngry
-                                ? "border-destructive/40 "
-                                : "border-border focus:ring-2 focus:ring-primary/20",
+                                ? "bg-background border-border focus:ring-2 focus:ring-survey-accent-1"
+                                : "bg-background border-border focus:ring-2 focus:ring-survey-accent-1",
                             )}
                           />
                         </div>
 
                         {/* حقل رقم الجوال */}
                         <div className="flex flex-col gap-1">
-                          <span className="text-xs font-bold text-foreground">
+                          <span className="text-xs font-bold text-white">
                             {isRtl ? "رقم الجوال" : "Phone Number"}
+
                             {isCustomerAngry ? (
-                              <span className="text-destructive mr-1 text-[10px] font-black">
-                                (إجباري لحل المشكلة)
-                              </span>
+                              <>
+                                <span className="text-destructive font-light text-lg leading-none mr-1">
+                                  *
+                                </span>
+                                <span className="text-destructive mr-1 text-[10px] font-black">
+                                  (إجباري لمتابعة الشكوى)
+                                </span>
+                              </>
                             ) : (
                               <span className="text-muted/80 mr-1 text-[10px] font-normal">
                                 (اختياري)
@@ -535,8 +546,8 @@ function SurveyContent() {
                             className={cn(
                               "w-full bg-card border rounded-sm p-3 text-sm focus:outline-none transition-all text-right",
                               isCustomerAngry
-                                ? "border-destructive/40 "
-                                : "border-border focus:ring-2 focus:ring-primary/20",
+                                ? "bg-background border-border focus:ring-2 focus:ring-survey-accent-1"
+                                : "bg-background border-border focus:ring-2 focus:ring-survey-accent-1",
                             )}
                           />
                         </div>
@@ -544,7 +555,7 @@ function SurveyContent() {
 
                       {/* 3. حقل الملاحظات والتعليقات الأصلي ملموم ومنسق */}
                       <div className="flex flex-col gap-1 text-right">
-                        <span className="text-xs font-bold text-forebackground">
+                        <span className="text-xs font-bold text-white ">
                           {isRtl ? "ملاحظات إضافية" : "Additional Comments"}
                           <span className="text-muted/80 text-[10px] font-normal mr-1">
                             (اختياري)
@@ -553,7 +564,7 @@ function SurveyContent() {
                         <textarea
                           value={comment}
                           onChange={(e) => setComment(e.target.value)}
-                          className="w-full bg-card border border-border rounded-sm p-4 h-24 focus:ring-2 focus:ring-primary/20 focus:outline-none text-sm resize-none"
+                          className="w-full bg-background border border-border rounded-sm p-4 h-24 focus:ring-2 focus:ring-survey-accent-1 focus:outline-none text-sm resize-none"
                           placeholder={
                             isRtl
                               ? "اكتب ملاحظاتك هنا..."
@@ -598,10 +609,10 @@ function SurveyContent() {
             >
               <div
                 onClick={resetToWelcome}
-                className="relative w-52 h-24 cursor-pointer"
+                className="relative w-64 h-36 cursor-pointer"
               >
                 <Image
-                  src="/E33.png"
+                  src="/lo25.png"
                   alt="Hala Markets"
                   fill
                   priority
@@ -609,7 +620,7 @@ function SurveyContent() {
                 />
               </div>
               <div className="space-y-4 px-6">
-                <h2 className="text-3xl font-extrabold text-foreground flex items-center justify-center gap-2">
+                <h2 className="text-3xl font-extrabold text-survey-accent-1  flex items-center justify-center gap-2">
                   {isRtl ? "شكراً لك!" : "Thank you!"}
                   <motion.span
                     animate={{ rotate: [0, 15, -15, 0] }}
@@ -619,7 +630,7 @@ function SurveyContent() {
                     🎉
                   </motion.span>
                 </h2>
-                <p className="text-muted-foreground text-base max-w-60 mx-auto italic leading-relaxed">
+                <p className="text-muted text-base max-w-60 mx-auto leading-relaxed">
                   {isRtl
                     ? "تم إرسال تقييمك بنجاح. نسعد دائماً بزيارتك لأسواق هلا ورأيك محل اهتمامنا."
                     : "Your feedback has been submitted successfully."}

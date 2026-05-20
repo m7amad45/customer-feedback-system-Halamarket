@@ -34,9 +34,16 @@
   --sidebar-border: oklch(0.32 0.06 145);
   --sidebar-ring: oklch(0.55 0.12 145);
   /* 🆕 ألوان شاشة التقييم الجديدة الموحدة بالمسطرة */
-  --survey-bg: #006e48; /* الأخضر الداكن الملكي للخلفية */
-  --survey-accent-1: #c0d56c; /* الأخضر الفستقي المساند */
-  --survey-accent-2: #e6540e; /* البرتقالي الناري للأزرار */
+  /* 🆕 ألوان شاشة التقييم الجديدة بنظام oklch الحديث */
+  --survey-bg: oklch(
+    0.4 0.08 162.5
+  ); /* الأخضر الداكن الملكي المقابل لـ #006e48 */
+  --survey-accent-1: oklch(
+    0.83 0.14 125.2
+  ); /* الأخضر الفستقي المساند المقابل لـ #c0d56c */
+  --survey-accent-2: oklch(
+    0.57 0.22 44.3
+  ); /* البرتقالي الناري للأزرار المقابل لـ #e6540e */
 }
 
 @theme inline {
@@ -78,6 +85,9 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-survey-bg: var(--survey-bg);
+  --color-survey-accent-1: var(--survey-accent-1);
+  --color-survey-accent-2: var(--survey-accent-2);
 }
 
 @layer base {
@@ -100,27 +110,5 @@
   }
   .star-filled {
     color: var(--star-color);
-  }
-
-  /* 🆕 كلاسات الألوان الجديدة لشاشة التقييمات فقط */
-  .bg-survey-bg {
-    background-color: #006e48;
-  }
-  .text-survey-bg {
-    color: #006e48;
-  }
-
-  .bg-survey-accent-1 {
-    background-color: #c0d56c;
-  }
-  .text-survey-accent-1 {
-    color: #c0d56c;
-  }
-
-  .bg-survey-accent-2 {
-    background-color: #e6540e;
-  }
-  .text-survey-accent-2 {
-    color: #e6540e;
   }
 }
