@@ -595,9 +595,9 @@ export default function DashboardPage() {
                 <th className="px-5 py-3">الفرع</th>
                 <th className="px-5 py-3">القسم</th>
                 {/* 🆕 عمود عناوين العميل الجديد */}
-                <th className="px-5 py-3">بيانات العميل</th>
                 <th className="px-5 py-3">التقييم</th>
                 <th className="px-5 py-3">التعليق</th>
+                <th className="px-5 py-3">بيانات العميل</th>
                 <th className="px-5 py-3">التاريخ</th>
               </tr>
             </thead>

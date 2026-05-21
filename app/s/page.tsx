@@ -117,7 +117,7 @@ function SurveyContent() {
 
     // هل العميل غير راضٍ؟ (تقييمه الحقيقي نزل لـ 2 أو أقل)
     const isCustomerAngry = averageRating > 0 && averageRating <= 2;
-
+    const isPhoneValid = /^05\d{8}$/.test(customerPhone.trim());
     // 2. 🚨 قفل الأمان الصارم: منع الإرسال لو العميل زعلان ولم يكتب بيانات التواصل
     if (isCustomerAngry && (!customerName.trim() || !customerPhone.trim())) {
       alert(
@@ -126,6 +126,9 @@ function SurveyContent() {
           : "Please provide your name and phone number so we can reach out and make it right.",
       );
       return; // يوقف الفنكشن هنا تماماً ويمنع الـ fetch للـ API
+    }
+    if (customerPhone.trim() && !isPhoneValid) {
+      return;
     }
 
     setIsSubmitting(true);
@@ -167,7 +170,7 @@ function SurveyContent() {
         className="w-full flex items-center justify-between px-6 py-3 z-60 sticky top-0 bg-survey-bg"
         dir="ltr"
       >
-        <div className="flex items-center gap-1 bg-secondary-foreground rounded-full p-1 shadow-sm border border-border/50">
+        <div className="flex items-center gap-1 bg-secondary-foreground rounded-full p-1 shadow-sm">
           {(["ar", "en"] as Language[]).map((l) => (
             <button
               key={l}
@@ -176,7 +179,7 @@ function SurveyContent() {
                 "px-3 py-1 rounded-full text-[10px] font-bold transition-all duration-300",
                 lang === l
                   ? "bg-survey-accent-2 text-primary-foreground shadow-md"
-                  : "text-muted hover:text-foreground",
+                  : "text-muted hover:text-muted-foreground",
               )}
             >
               {l === "ar" ? "عربي" : "EN"}
@@ -540,8 +543,13 @@ function SurveyContent() {
                           </span>
                           <input
                             type="tel"
+                            maxLength={10}
                             value={customerPhone}
-                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            onChange={(e) =>
+                              setCustomerPhone(
+                                e.target.value.replace(/\D/g, ""),
+                              )
+                            }
                             placeholder={isRtl ? "05xxxxxxxx" : "05xxxxxxxx"}
                             className={cn(
                               "w-full bg-card border rounded-sm p-3 text-sm focus:outline-none transition-all text-right",
@@ -550,6 +558,15 @@ function SurveyContent() {
                                 : "bg-background border-border focus:ring-2 focus:ring-survey-accent-1",
                             )}
                           />
+                          {customerPhone.length > 0 &&
+                            (!customerPhone.startsWith("05") ||
+                              customerPhone.length < 10) && (
+                              <span className="text-muted/80 text-[10px] font-bold mt-0.5 px-1">
+                                {isRtl
+                                  ? "⚠️ يجب أن يبدأ الرقم بـ 05 ويتكون من 10 أرقام بالكامل"
+                                  : "⚠️ Must start with 05 and be exactly 10 digits"}
+                              </span>
+                            )}
                         </div>
                       </div>
 
